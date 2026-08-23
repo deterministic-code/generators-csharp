@@ -4,33 +4,39 @@ import { memoryReader } from "@deterministic-code/generators-common/deterministi
 import type { GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { generate } from "../src/generate-services.ts";
 
-const DS_YAML = `types:
+const TYPES_YAML = `types:
   - user:
+      tags: [datasource_type, view_type]
+      inherits: set
       fields:
         - email:
             type: string
-            is_unique: true
             size: 256
         - role_id:
             type: number
             references: role.id
   - role:
-      datasource_type: readonly-lookup
+      tags: [datasource_type, view_type, readonly_lookup]
+      inherits: set
       fields:
         - name:
             type: string
+`;
+
+const DATASOURCE_YAML = `types:
+  - user:
+      fields:
+        - email:
+            is_unique: true
+  - role:
+      fields:
+        - name:
             is_unique: true
 `;
 
-const VIEW_YAML = `includes:
-  - datasource_types:
-      include: "*"
-types: []
-`;
-
 const SERVICES_YAML = `includes:
-  - view_type_services:
-      filter: 'type is view_type'
+  - types:
+      filter: 'tag == "view_type"'
 services:
   - name: ReportService
 `;
@@ -52,15 +58,18 @@ const textOf = (entries: GenerateEntry[], path: string): string => {
   return hit.contents;
 };
 
+const files = (extra: Record<string, string> = {}) => ({
+  "types.yaml": TYPES_YAML,
+  "datasource.yaml": DATASOURCE_YAML,
+  "services.yaml": SERVICES_YAML,
+  "routes.yaml": ROUTES_YAML,
+  ...extra,
+});
+
 describe("generate-services", () => {
   it("emits empty generic stubs, custom stubs, and health", async () => {
     const entries = await generate({
-      reader: fixtureReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
-        "services.yaml": SERVICES_YAML,
-        "routes.yaml": ROUTES_YAML,
-      }),
+      reader: fixtureReader(files()),
       settings: {},
     });
 
@@ -89,15 +98,15 @@ describe("generate-services", () => {
 
   it("emits description doc comments when comments=description", async () => {
     const entries = await generate({
-      reader: fixtureReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
-        "services.yaml": `includes:
-  - view_type_services:
+      reader: fixtureReader(
+        files({
+          "services.yaml": `includes:
+  - types:
       filter: 'type == "user"'
 services: []
 `,
-      }),
+        }),
+      ),
       settings: { comments: "description" },
     });
     const user = textOf(entries, "userService.cs");
@@ -110,15 +119,15 @@ services: []
 
   it("emits simple doc comments by default", async () => {
     const entries = await generate({
-      reader: fixtureReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
-        "services.yaml": `includes:
-  - view_type_services:
+      reader: fixtureReader(
+        files({
+          "services.yaml": `includes:
+  - types:
       filter: 'type == "user"'
 services: []
 `,
-      }),
+        }),
+      ),
       settings: {},
     });
     const user = textOf(entries, "userService.cs");
@@ -127,15 +136,15 @@ services: []
 
   it("emits no doc comments when comments=none", async () => {
     const entries = await generate({
-      reader: fixtureReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
-        "services.yaml": `includes:
-  - view_type_services:
+      reader: fixtureReader(
+        files({
+          "services.yaml": `includes:
+  - types:
       filter: 'type == "user"'
 services: []
 `,
-      }),
+        }),
+      ),
       settings: { comments: "none" },
     });
     const user = textOf(entries, "userService.cs");

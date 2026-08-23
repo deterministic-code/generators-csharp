@@ -1,12 +1,13 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
+import { datasourceTypesOf } from "@deterministic-code/generators-common/spec-types";
 import {
   DeterministicParser,
-  DATASOURCE_TYPES_YAML,
-  type DatasourceField,
-  type DatasourceType,
+  TYPES_YAML,
   type IDeterministic,
+  type Type,
+  type TypeField,
 } from "./specification-parser.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -16,9 +17,9 @@ type FieldShape = {
   name: string;
   type: string;
   isNullable: boolean;
-  references?: string;
+  references?: TypeField["references"];
   minSize?: number;
-  size?: number;
+  size?: TypeField["size"];
 };
 
 const STANDARD_COLUMN_NAMES = new Set(["id", "uuid", "created", "updated"]);
@@ -60,7 +61,7 @@ const tightenString = (field: FieldShape): string[] => {
   if (field.minSize !== undefined && field.minSize >= 0) {
     rules.push(`MinimumLength(${field.minSize})`);
   }
-  if (field.size !== undefined && field.size >= 0) {
+  if (typeof field.size === "number" && field.size >= 0) {
     rules.push(`MaximumLength(${field.size})`);
   }
   return rules;
@@ -77,7 +78,7 @@ const tightenNumber = (field: FieldShape): string[] => {
   } else if (field.minSize !== undefined) {
     rules.push(`GreaterThanOrEqualTo(${lit(field.minSize)})`);
   }
-  if (field.size !== undefined) {
+  if (typeof field.size === "number") {
     rules.push(`LessThanOrEqualTo(${lit(field.size)})`);
   }
   return rules;
@@ -90,7 +91,7 @@ const tightenFloat = (field: FieldShape): string[] => {
       `GreaterThanOrEqualTo(${numericLiteral(field.type, field.minSize)})`,
     );
   }
-  if (field.size !== undefined) {
+  if (typeof field.size === "number") {
     rules.push(
       `LessThanOrEqualTo(${numericLiteral(field.type, field.size)})`,
     );
@@ -162,16 +163,16 @@ class Generator extends Emit {
   private readonly typesNamespace = "Backend.Types.Datasource";
 
   from(deterministic: IDeterministic): GenerateEntry[] {
-    return deterministic.expandedDatasourceTypes.map((table) =>
+    return datasourceTypesOf(deterministic).map((table) =>
       this.validator(table),
     );
   }
 
-  private validator(table: DatasourceType): GenerateEntry {
+  private validator(table: Type): GenerateEntry {
     const className = this.casing.convertTypes(table.name);
     const convertFields = (name: string): string =>
       this.casing.convertFields(name);
-    const rules = table.fields.map((field: DatasourceField) =>
+    const rules = table.fields.map((field: TypeField) =>
       STANDARD_COLUMN_NAMES.has(field.name)
         ? standardRuleLine(field.name, field.type, convertFields)
         : ruleLine(field, convertFields),
@@ -195,7 +196,7 @@ class Generator extends Emit {
 export const generate = async (
   ctx: GenerateContext,
 ): Promise<GenerateEntry[]> => {
-  await ctx.reader.read(DATASOURCE_TYPES_YAML);
+  await ctx.reader.read(TYPES_YAML);
   return new Generator(ctx.settings).from(
     await DeterministicParser(ctx.reader).parse(ctx.settings),
   );

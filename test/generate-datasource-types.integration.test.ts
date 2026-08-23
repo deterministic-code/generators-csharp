@@ -1,28 +1,37 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { memoryReader } from "@deterministic-code/generators-common/deterministic-reader";
-import {
-  DATASOURCE_TYPES_YAML,
-} from "../src/specification-parser.ts";
+import { TYPES_YAML } from "../src/specification-parser.ts";
 import type { GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { generate } from "../src/generate-datasource-types.ts";
 
 const FIXTURE_YAML = `types:
   - user:
+      tags: [datasource_type]
+      inherits: set
       fields:
+        - uuid:
+            type: uuid
+        - created:
+            type: datetime
+        - updated:
+            type: datetime
         - email:
             type: string
             size: 256
         - role_id:
+            type: integer
             references: role.id
   - role:
+      tags: [datasource_type]
+      inherits: set
       fields:
         - name:
             type: string
 `;
 
 const fixtureReader = () =>
-  memoryReader({ [DATASOURCE_TYPES_YAML]: FIXTURE_YAML });
+  memoryReader({ [TYPES_YAML]: FIXTURE_YAML });
 
 const entryBody = (entry: GenerateEntry): string => {
   if ("contents" in entry) return String(entry.contents);
@@ -52,14 +61,14 @@ const requireEntry = (
 };
 
 describe("generate", () => {
-  it("rejects a missing datasource_types.yaml", async () => {
+  it("rejects a missing types.yaml", async () => {
     await assert.rejects(
       () =>
         generate({
           reader: memoryReader({}),
           settings: {},
         }),
-      /missing datasource_types\.yaml/,
+      /missing types\.yaml/,
     );
   });
 

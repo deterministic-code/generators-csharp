@@ -1,13 +1,22 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import { emitViewFields, inlinesParent } from "./common/view-shape.ts";
+import {
+  authoredViewTypesOf,
+  unionMembers,
+  viewTypesOf,
+} from "@deterministic-code/generators-common/spec-types";
+import {
+  isUnionLike,
+  viewExtendsNamedDatasource,
+} from "./common/view-shape.ts";
 import {
   DeterministicParser,
-  VIEW_TYPES_YAML,
-  type ViewField,
-  type ViewType,
+  TYPES_YAML,
+  typeHasTag,
   type IDeterministic,
+  type Type,
+  type TypeField,
 } from "./specification-parser.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -15,38 +24,50 @@ import { typeTmpl } from "./resources/view-types.ts";
 
 class Generator extends Emit {
   from(deterministic: IDeterministic): GenerateEntry[] {
-    const expandedByName = new Map(
-      deterministic.expandedViewTypes.map((v) => [v.name, v]),
+    const authoredByName = new Map(
+      authoredViewTypesOf(deterministic).map((v) => [v.name, v]),
     );
-    return deterministic.viewTypes.map((view) =>
-      this.view(view, expandedByName.get(view.name)),
+    const typesByName = new Map(
+      deterministic.expandedTypes.map((t) => [t.name, t]),
+    );
+    return viewTypesOf(deterministic).map((view) =>
+      this.view(view, authoredByName.get(view.name), typesByName),
     );
   }
 
-  private csTypeFor(field: ViewField): string {
-    let base =
-      field.kind === "primitive"
-        ? convertSpecType(field.base)
-        : field.kind === "datasource"
-          ? this.imports.datasourceQual(field.base)
-          : this.casing.convertTypes(field.base);
+  private csTypeFor(field: TypeField, typesByName: Map<string, Type>): string {
+    let base: string;
+    if (field.kind === "primitive") {
+      base = convertSpecType(field.base);
+    } else {
+      const nested = typesByName.get(field.base);
+      base =
+        nested !== undefined && typeHasTag(nested, "view_type")
+          ? this.casing.convertTypes(field.base)
+          : this.imports.datasourceQual(field.base);
+    }
     if (field.isArray) base = `List<${base}>`;
     return field.isNullable ? `${base}?` : base;
   }
 
-  private view(view: ViewType, expanded: ViewType | undefined): GenerateEntry {
+  private view(
+    view: Type,
+    authored: Type | undefined,
+    typesByName: Map<string, Type>,
+  ): GenerateEntry {
     const className = this.casing.convertTypes(view.name);
-    const isUnion = view.kind === "union";
-    const fields = isUnion
+    const isUnion = isUnionLike(view);
+    const members = unionMembers(view) ?? [];
+    const hasExtends = viewExtendsNamedDatasource(view, authored, typesByName);
+    const fields = isUnion || hasExtends
       ? []
-      : emitViewFields(view, expanded).map((f) => ({
+      : view.fields.map((f) => ({
           ident: this.casing.convertFields(f.name),
-          csType: this.csTypeFor(f),
+          csType: this.csTypeFor(f, typesByName),
         }));
-    const hasExtends =
-      !isUnion && view.inherits !== null && !inlinesParent(view);
     const needsList =
-      !isUnion && view.kind === "shaped" && view.fields.some((f) => f.isArray);
+      !isUnion && !hasExtends && view.fields.some((f) => f.isArray);
+    const parent = view.inherits;
     return content(
       this.imports.view(view.name),
       fill(typeTmpl, {
@@ -55,16 +76,18 @@ class Generator extends Emit {
         simpleDoc: this.settings.simpleDoc,
         descriptionDoc: this.settings.descriptionDoc,
         className,
-        datasourceType: isUnion ? "standard" : (view.inherits ?? "standard"),
+        datasourceType: isUnion ? "standard" : (parent ?? "standard"),
         target: isUnion ? "UnionView" : "ShapedView",
-        fieldCount: String(isUnion ? view.members.length : fields.length),
+        fieldCount: String(isUnion ? members.length : fields.length),
         isUnion,
         isShaped: !isUnion,
         hasExtends,
         extendsType:
-          hasExtends && view.kind === "shaped" && view.inherits !== null
-            ? this.imports.datasourceQual(view.inherits)
-            : "",
+          hasExtends && parent !== undefined && parent !== "set"
+            ? this.imports.datasourceQual(parent)
+            : hasExtends
+              ? this.imports.datasourceQual(view.name)
+              : "",
         fields,
       }),
     );
@@ -74,7 +97,7 @@ class Generator extends Emit {
 export const generate = async (
   ctx: GenerateContext,
 ): Promise<GenerateEntry[]> => {
-  await ctx.reader.read(VIEW_TYPES_YAML);
+  await ctx.reader.read(TYPES_YAML);
   return new Generator(ctx.settings).from(
     await DeterministicParser(ctx.reader).parse(ctx.settings),
   );

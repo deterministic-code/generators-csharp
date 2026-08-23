@@ -4,27 +4,32 @@ import { memoryReader } from "@deterministic-code/generators-common/deterministi
 import type { GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { generate } from "../src/generate-routes.ts";
 
-const DS_YAML = `types:
+const TYPES_YAML = `types:
   - user:
+      tags: [datasource_type, view_type]
+      inherits: set
       fields:
         - email:
             type: string
-            is_unique: true
             size: 256
         - role_id:
             type: number
             references: role.id
   - role:
-      datasource_type: readonly-lookup
+      tags: [datasource_type, view_type, readonly_lookup]
+      inherits: set
       fields:
         - name:
             type: string
-            is_unique: true
   - order:
+      tags: [datasource_type, view_type]
+      inherits: set
       fields:
         - label:
             type: string
   - order_item:
+      tags: [datasource_type]
+      inherits: set
       fields:
         - order_id:
             type: number
@@ -32,22 +37,26 @@ const DS_YAML = `types:
         - sku:
             type: string
   - internal_sink:
-      target: None
+      tags: []
       fields:
         - label:
             type: string
 `;
 
-const VIEW_YAML = `includes:
-  - datasource_types:
-      include: "*"
-      auto_enrich: true
-types: []
+const DATASOURCE_YAML = `types:
+  - user:
+      fields:
+        - email:
+            is_unique: true
+  - role:
+      fields:
+        - name:
+            is_unique: true
 `;
 
 const ROUTES_YAML = `includes:
-  - view_type_routes:
-      filter: 'type is view_type || type is datasource_type'
+  - types:
+      filter: 'tag == "view_type"'
 routes:
   - getReport:
       method: GET
@@ -56,7 +65,7 @@ routes:
       serviceMethod: run
 combined_routes:
   - order:
-      combined_types:
+      combines:
         - order_item
 `;
 
@@ -74,8 +83,8 @@ describe("generate-routes", () => {
   it("emits router stubs, custom stubs, and enrichment helpers", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "routes.yaml": ROUTES_YAML,
       }),
       settings: {},
@@ -113,10 +122,10 @@ describe("generate-routes", () => {
   it("emits description doc comments when comments=description", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "routes.yaml": `includes:
-  - view_type_routes:
+  - types:
       filter: 'type == "user"'
 routes: []
 `,
@@ -131,10 +140,10 @@ routes: []
   it("emits simple doc comments by default", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "routes.yaml": `includes:
-  - view_type_routes:
+  - types:
       filter: 'type == "user"'
 routes: []
 `,
@@ -148,10 +157,10 @@ routes: []
   it("emits no doc comments when comments=none", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "routes.yaml": `includes:
-  - view_type_routes:
+  - types:
       filter: 'type == "user"'
 routes: []
 `,
