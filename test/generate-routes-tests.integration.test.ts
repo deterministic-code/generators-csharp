@@ -4,18 +4,20 @@ import { memoryReader } from "@deterministic-code/generators-common/deterministi
 import type { GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { generate } from "../src/generate-routes-tests.ts";
 
-const DS_YAML = `types:
+const TYPES_YAML = `types:
   - user:
+      tags: [datasource_type, view_type]
+      inherits: set
       fields:
         - email:
             type: string
-            is_unique: true
 `;
 
-const VIEW_YAML = `includes:
-  - datasource_types:
-      include: "*"
-types: []
+const DATASOURCE_YAML = `types:
+  - user:
+      fields:
+        - email:
+            is_unique: true
 `;
 
 const textOf = (entries: GenerateEntry[], path: string): string => {
@@ -29,11 +31,11 @@ describe("generate-routes-tests", () => {
   it("emits an empty router test class per candidate", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "routes.yaml": `includes:
-  - view_type_routes:
-      filter: 'type is view_type || type is datasource_type'
+  - types:
+      filter: 'tag == "view_type"'
 routes: []
 `,
       }),
@@ -49,11 +51,11 @@ routes: []
     );
   });
 
-  it("emits nothing without view_type_routes", async () => {
+  it("emits nothing without a types include", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "routes.yaml": "routes: []\n",
       }),
       settings: {},

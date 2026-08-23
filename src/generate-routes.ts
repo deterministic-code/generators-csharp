@@ -1,12 +1,13 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
+import { viewTypesOf } from "@deterministic-code/generators-common/spec-types";
 import {
   DeterministicParser,
   ROUTES_YAML,
   type CustomRouteEntry,
   type RouteCandidate,
-  type ViewType,
+  type Type,
   type IDeterministic,
 } from "./specification-parser.ts";
 import { Emit } from "./emit.ts";
@@ -16,20 +17,27 @@ import {
   routerTmpl,
 } from "./resources/routes.ts";
 
-/** Unique enrichment targets from shaped views (auto-enrich), deduped by table. */
+const refParent = (
+  references: string | [string, string] | undefined,
+): string | undefined => {
+  if (typeof references !== "string") return undefined;
+  return references.split(".")[0];
+};
+
+/** Unique FK targets from view types that have route candidates. */
 const enrichmentTargets = (
-  views: ViewType[],
+  views: Type[],
   survivorNames: Set<string>,
 ): string[] => {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const view of views) {
-    if (view.kind !== "shaped") continue;
     if (!survivorNames.has(view.name)) continue;
-    for (const e of view.enrichments) {
-      if (seen.has(e.targetTable)) continue;
-      seen.add(e.targetTable);
-      out.push(e.targetTable);
+    for (const field of view.fields) {
+      const target = refParent(field.references);
+      if (target === undefined || seen.has(target)) continue;
+      seen.add(target);
+      out.push(target);
     }
   }
   return out;
@@ -39,7 +47,10 @@ class Generator extends Emit {
   from(deterministic: IDeterministic): GenerateEntry[] {
     const { candidates, customs } = deterministic.routes;
     const survivorNames = new Set(candidates.map((c) => c.name));
-    const targets = enrichmentTargets(deterministic.viewTypes, survivorNames);
+    const targets = enrichmentTargets(
+      viewTypesOf(deterministic),
+      survivorNames,
+    );
     return [
       ...candidates.map((c) => this.router(c)),
       ...customs.map((c) => this.custom(c)),

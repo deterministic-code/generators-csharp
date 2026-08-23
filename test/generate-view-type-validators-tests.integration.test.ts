@@ -1,16 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { memoryReader } from "@deterministic-code/generators-common/deterministic-reader";
-import {
-  DATASOURCE_TYPES_YAML,
-  VIEW_TYPES_YAML,
-} from "../src/specification-parser.ts";
+import { TYPES_YAML } from "../src/specification-parser.ts";
 import type { GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { generate } from "../src/generate-view-type-validators-tests.ts";
 
-const DS_YAML = `types:
+const TYPES = `types:
   - user:
-      datasource_type: audit
+      tags: [datasource_type, view_type]
+      inherits: set
       fields:
         - email:
             type: string
@@ -18,20 +16,17 @@ const DS_YAML = `types:
             type: string
             is_nullable: true
   - tag:
+      tags: [datasource_type]
       fields:
         - label:
             type: string
-`;
-
-const VIEW_YAML = `includes:
-  - datasource_types:
-      include: "*"
-types:
   - payment:
+      tags: [view_type]
       one_of:
         - card_payment
         - cash_payment
   - card_payment:
+      tags: [view_type]
       fields:
         - amount:
             type: decimal
@@ -39,15 +34,17 @@ types:
             type: string
             is_nullable: true
         - tags:
-            type: datasource_types.tag[]
+            type: tag[]
   - cash_payment:
+      tags: [view_type]
       fields:
         - amount:
             type: decimal
 `;
 
-const SIMPLE_VIEW_YAML = `types:
+const SIMPLE_TYPES = `types:
   - card_payment:
+      tags: [view_type]
       fields:
         - amount:
             type: decimal
@@ -56,14 +53,8 @@ const SIMPLE_VIEW_YAML = `types:
             is_nullable: true
 `;
 
-const fixtureReader = (
-  viewYaml: string = VIEW_YAML,
-  dsYaml: string | undefined = DS_YAML,
-) =>
-  memoryReader({
-    [VIEW_TYPES_YAML]: viewYaml,
-    ...(dsYaml === undefined ? {} : { [DATASOURCE_TYPES_YAML]: dsYaml }),
-  });
+const fixtureReader = (yaml: string = TYPES) =>
+  memoryReader({ [TYPES_YAML]: yaml });
 
 const entryBody = (entry: GenerateEntry): string => {
   if ("contents" in entry) return String(entry.contents);
@@ -97,34 +88,32 @@ const requireEntry = (
 describe("generate view type validators tests", () => {
   const generateWith = (
     settings: Record<string, string> = {},
-    viewYaml?: string,
-    dsYaml?: string,
+    yaml?: string,
   ) =>
     generate({
-      reader: fixtureReader(viewYaml, dsYaml),
+      reader: fixtureReader(yaml),
       settings,
     });
 
   const bodyOf = async (
     suffix: string,
     settings: Record<string, string> = {},
-    viewYaml?: string,
-    dsYaml?: string,
+    yaml?: string,
   ) => {
-    const map = indexEntries(await generateWith(settings, viewYaml, dsYaml));
+    const map = indexEntries(await generateWith(settings, yaml));
     const file = [...map.keys()].find((name) => name.endsWith(suffix));
     assert.ok(file, `missing ${suffix} generate entry`);
     return entryBody(requireEntry(map, file));
   };
 
-  it("rejects a missing view_types.yaml", async () => {
+  it("rejects a missing types.yaml", async () => {
     await assert.rejects(
       () =>
         generate({
           reader: memoryReader({}),
           settings: {},
         }),
-      /missing view_types\.yaml/,
+      /missing types\.yaml/,
     );
   });
 
@@ -132,8 +121,7 @@ describe("generate view type validators tests", () => {
     const card = await bodyOf(
       "cardPaymentValidatorTests.cs",
       {},
-      SIMPLE_VIEW_YAML,
-      undefined,
+      SIMPLE_TYPES,
     );
     assert.match(card, /public void ParsesAValidPayload\(/);
     assert.match(card, /public void AcceptsNullForNullableFields\(/);
@@ -154,8 +142,7 @@ describe("generate view type validators tests", () => {
     const card = await bodyOf(
       "cardPaymentValidatorTests.cs",
       { "codegen.schema_version": "9.9" },
-      SIMPLE_VIEW_YAML,
-      undefined,
+      SIMPLE_TYPES,
     );
     assert.match(card, /schema-version: 9.9/);
   });

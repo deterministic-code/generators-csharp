@@ -2,12 +2,17 @@ import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
+  unionMembers,
+  viewTypesOf,
+} from "@deterministic-code/generators-common/spec-types";
+import {
   DeterministicParser,
-  VIEW_TYPES_YAML,
-  type ViewField,
-  type ViewType,
+  TYPES_YAML,
   type IDeterministic,
+  type Type,
+  type TypeField,
 } from "./specification-parser.ts";
+import { isUnionLike } from "./common/view-shape.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTestTmpl } from "./resources/view-types-tests.ts";
@@ -61,7 +66,7 @@ const samplesForNative = (
 };
 
 const listElemType = (
-  field: ViewField,
+  field: TypeField,
   convertTypes: (text: string) => string,
 ): string =>
   field.kind === "primitive"
@@ -69,7 +74,7 @@ const listElemType = (
     : convertTypes(field.base);
 
 const fieldTokens = (
-  field: ViewField,
+  field: TypeField,
   convertTypes: (text: string) => string,
   convertFields: (name: string) => string,
 ): FieldTok => {
@@ -109,38 +114,36 @@ const fieldTokens = (
 
 class Generator extends Emit {
   from(deterministic: IDeterministic): GenerateEntry[] {
-    return deterministic.expandedViewTypes.map((view) => this.tests(view));
+    return viewTypesOf(deterministic).map((view) => this.tests(view));
   }
 
-  private tests(view: ViewType): GenerateEntry {
-    const fields =
-      view.kind === "shaped"
-        ? view.fields.map((f) =>
-            fieldTokens(
-              f,
-              (text) => this.casing.convertTypes(text),
-              (name) => this.casing.convertFields(name),
-            ),
-          )
-        : [];
+  private tests(view: Type): GenerateEntry {
+    const union = isUnionLike(view);
+    const members = unionMembers(view) ?? [];
+    const fields = union
+      ? []
+      : view.fields.map((f) =>
+          fieldTokens(
+            f,
+            (text) => this.casing.convertTypes(text),
+            (name) => this.casing.convertFields(name),
+          ),
+        );
     return content(
       this.imports.test(this.imports.view(view.name), view.name),
       fill(typeTestTmpl, {
         schemaVersion: this.settings.schemaVersion,
         className: this.casing.convertTypes(view.name),
         testClassName: this.casing.testClassName(view.name),
-        isShaped: view.kind === "shaped",
-        isUnion: view.kind === "union",
-        needsList: view.kind === "shaped" && view.fields.some((f) => f.isArray),
+        isShaped: !union,
+        isUnion: union,
+        needsList: !union && view.fields.some((f) => f.isArray),
         fields,
-        members:
-          view.kind === "union"
-            ? view.members.map((name) => ({
-                ident: this.casing.convertTypes(name),
-                memberClass: this.casing.convertTypes(name),
-                acceptsMemberTest: this.casing.acceptsMemberTestName(name),
-              }))
-            : [],
+        members: members.map((name) => ({
+          ident: this.casing.convertTypes(name),
+          memberClass: this.casing.convertTypes(name),
+          acceptsMemberTest: this.casing.acceptsMemberTestName(name),
+        })),
       }),
     );
   }
@@ -149,7 +152,7 @@ class Generator extends Emit {
 export const generate = async (
   ctx: GenerateContext,
 ): Promise<GenerateEntry[]> => {
-  await ctx.reader.read(VIEW_TYPES_YAML);
+  await ctx.reader.read(TYPES_YAML);
   return new Generator(ctx.settings).from(
     await DeterministicParser(ctx.reader).parse(ctx.settings),
   );

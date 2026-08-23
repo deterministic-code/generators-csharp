@@ -2,10 +2,17 @@ import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
+  datasourceTypesOf,
+  isPkField,
+  tableByName,
+  tableKind,
+} from "@deterministic-code/generators-common/spec-types";
+import {
   DeterministicParser,
-  DATASOURCE_TYPES_YAML,
-  type DatasourceType,
+  TYPES_YAML,
+  type DatasourceTable,
   type IDeterministic,
+  type Type,
 } from "./specification-parser.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -21,18 +28,19 @@ const csTypeFor = (field: {
 
 class Generator extends Emit {
   from(deterministic: IDeterministic): GenerateEntry[] {
-    return deterministic.expandedDatasourceTypes.map((table) =>
-      this.type(table),
+    const tables = tableByName(deterministic);
+    return datasourceTypesOf(deterministic).map((table) =>
+      this.type(table, tables.get(table.name)),
     );
   }
 
-  private type(table: DatasourceType): GenerateEntry {
+  private type(table: Type, overlay: DatasourceTable | undefined): GenerateEntry {
     const { schemaVersion, simpleDoc, descriptionDoc } = this.settings;
     const fields = table.fields.map((f) => ({
       name: f.name,
       ident: this.casing.convertFields(f.name),
       csType: csTypeFor(f),
-      isPrimaryKey: f.isPrimaryKey === true,
+      isPrimaryKey: isPkField(f, table, overlay),
     }));
     const idField =
       fields.find((f) => f.isPrimaryKey) ?? fields.find((f) => f.name === "id");
@@ -47,10 +55,10 @@ class Generator extends Emit {
         simpleDoc,
         descriptionDoc,
         className,
-        datasourceType: table.datasourceType,
+        datasourceType: tableKind(table),
         fieldCount: String(fields.length),
-        idType: idField?.csType,
-        datetimeType: datetimeField?.csType,
+        idType: idField?.csType ?? "long",
+        datetimeType: datetimeField?.csType ?? "System.DateTime",
         fields,
       }),
     );
@@ -60,7 +68,7 @@ class Generator extends Emit {
 export const generate = async (
   ctx: GenerateContext,
 ): Promise<GenerateEntry[]> => {
-  await ctx.reader.read(DATASOURCE_TYPES_YAML);
+  await ctx.reader.read(TYPES_YAML);
   return new Generator(ctx.settings).from(
     await DeterministicParser(ctx.reader).parse(ctx.settings),
   );

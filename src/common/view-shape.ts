@@ -1,18 +1,30 @@
-import type {
-  ShapedView,
-  ViewField,
-  ViewType,
-} from "../specification-parser.ts";
+import { typeHasTag, type Type } from "../specification-parser.ts";
 
-export const inlinesParent = (view: ShapedView): boolean =>
-  view.inherits !== null &&
-  (view.enrichments.length > 0 || view.omit.length > 0);
+export const isUnionLike = (type: Type): boolean =>
+  type.kind === "union" || type.kind === "one_of";
 
-/** Field list to emit: expanded when inlining, otherwise authored extras. */
-export const emitViewFields = (
-  view: ShapedView,
-  expanded: ViewType | undefined,
-): ViewField[] =>
-  inlinesParent(view) && expanded?.kind === "shaped"
-    ? expanded.fields
-    : view.fields;
+/** Dual-tagged types emit a view class that extends the datasource class. */
+export const viewExtendsDatasource = (view: Type): boolean =>
+  typeHasTag(view, "datasource_type") && typeHasTag(view, "view_type");
+
+/** Pass-through inherit of a datasource type (no extras / remove_fields). */
+export const viewExtendsNamedDatasource = (
+  view: Type,
+  authored: Type | undefined,
+  typesByName: Map<string, Type>,
+): boolean => {
+  if (isUnionLike(view)) return false;
+  if (viewExtendsDatasource(view)) return true;
+  const parent = view.inherits;
+  if (parent === undefined || parent === "set" || parent === "dictionary") {
+    return false;
+  }
+  const parentType = typesByName.get(parent);
+  if (parentType === undefined || !typeHasTag(parentType, "datasource_type")) {
+    return false;
+  }
+  return (
+    (authored?.fields.length ?? 0) === 0 &&
+    (authored?.removeFields?.length ?? 0) === 0
+  );
+};

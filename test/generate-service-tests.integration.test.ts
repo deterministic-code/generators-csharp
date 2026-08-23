@@ -4,23 +4,25 @@ import { memoryReader } from "@deterministic-code/generators-common/deterministi
 import type { GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { generate } from "../src/generate-service-tests.ts";
 
-const DS_YAML = `types:
+const TYPES_YAML = `types:
   - user:
+      tags: [datasource_type, view_type]
+      inherits: set
       fields:
         - email:
             type: string
+`;
+
+const DATASOURCE_YAML = `types:
+  - user:
+      fields:
+        - email:
             is_unique: true
 `;
 
-const VIEW_YAML = `includes:
-  - datasource_types:
-      include: "*"
-types: []
-`;
-
 const SERVICES_YAML = `includes:
-  - view_type_services:
-      filter: 'type is view_type'
+  - types:
+      filter: 'tag == "view_type"'
 services:
   - name: ReportService
 `;
@@ -36,8 +38,8 @@ describe("generate-service-tests", () => {
   it("emits an empty test class per generic service", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "services.yaml": SERVICES_YAML,
       }),
       settings: {},
@@ -51,11 +53,11 @@ describe("generate-service-tests", () => {
     assert.match(body, /public class UserServiceTests/);
   });
 
-  it("emits nothing without view_type_services", async () => {
+  it("emits nothing without a types include", async () => {
     const entries = await generate({
       reader: memoryReader({
-        "datasource_types.yaml": DS_YAML,
-        "view_types.yaml": VIEW_YAML,
+        "types.yaml": TYPES_YAML,
+        "datasource.yaml": DATASOURCE_YAML,
         "services.yaml": "services: []\n",
       }),
       settings: {},
