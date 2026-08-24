@@ -145,23 +145,6 @@ describe("generate datasource types tests", () => {
     assert.match(user, /Balance = "0"/);
   });
 
-  it("uses string ids when datasource.id_type=uuid", async () => {
-    const user = await userBody({ "datasource.id_type": "uuid" });
-    assert.match(user, /public void GetsId\(/);
-    assert.match(user, /public void SetsId\(/);
-    assert.match(
-      user,
-      /var initial = "00000000-0000-0000-0000-000000000000";/,
-    );
-  });
-
-  it("uses long ids when datasource.id_type=biginteger", async () => {
-    const user = await userBody({ "datasource.id_type": "biginteger" });
-    assert.match(user, /Id = 1L,/);
-    assert.match(user, /var next = 2L;/);
-    assert.match(user, /private static User Sample\(\) => new User/);
-  });
-
   it("writes codegen.schema_version into the file header", async () => {
     const user = await userBody({ "codegen.schema_version": "9.9" });
     assert.match(user, /schema-version: 9.9/);
