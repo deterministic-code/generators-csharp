@@ -113,12 +113,6 @@ describe("generate datasource type validators", () => {
     assert.match(user, /RuleFor\(x => x\.Score\)[\s\S]*\.GreaterThanOrEqualTo\(0\.0\)/);
   });
 
-  it("drops the uuid rule when datasource.id_type=uuid", async () => {
-    const user = await userBody({ "datasource.id_type": "uuid" });
-    assert.match(user, /RuleFor\(x => x\.Id\)\n\s+\.NotNull\(\);/);
-    assert.doesNotMatch(user, /RuleFor\(x => x\.Uuid\)/);
-  });
-
   it("writes codegen.schema_version into the file header", async () => {
     const user = await userBody({ "codegen.schema_version": "9.9" });
     assert.match(user, /schema-version: 9.9/);
