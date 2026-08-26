@@ -3,7 +3,6 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   authoredViewTypesOf,
-  unionMembers,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -84,12 +83,7 @@ class Generator extends Emit {
           isShaped: false,
           className,
           validatorClass,
-          branches: (unionMembers(view) ?? []).map((m) => {
-            const alias = this.casing.convertFields(`as_${m}`);
-            return {
-              line: `if (obj is ${this.imports.viewQual(m)} ${alias}) { new ${this.viewValidator(m)}().ValidateAndThrow(${alias}); return; }`,
-            };
-          }),
+          branches: [],
           rules: [],
         }),
       );

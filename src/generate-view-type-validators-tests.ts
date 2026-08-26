@@ -3,7 +3,6 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   datasourceTypesOf,
-  unionMembers,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -165,10 +164,7 @@ class Generator extends Emit {
     if (view === undefined) return `new ${cls}()`;
     const next = new Set(visited).add(name);
     if (isUnionLike(view)) {
-      const member = (unionMembers(view) ?? [])[0];
-      return member === undefined
-        ? `new ${cls}()`
-        : this.viewFixture(member, next);
+      return `new ${cls}()`;
     }
     return objectLiteral(
       cls,
@@ -227,18 +223,8 @@ class Generator extends Emit {
     return cases;
   }
 
-  private unionCases(view: Type): CaseTok[] {
-    return (unionMembers(view) ?? []).map((name) => ({
-      ident: this.casing.convertTypes(`accepts_${name}_member`),
-      fixture: this.viewFixture(name, new Set([view.name])),
-      assertion: "True",
-    }));
-  }
-
   private tests(view: Type): GenerateEntry {
-    const cases = isUnionLike(view)
-      ? this.unionCases(view)
-      : this.shapedCases(view);
+    const cases = isUnionLike(view) ? [] : this.shapedCases(view);
     return content(
       this.imports.test(this.imports.viewValidator(view.name), view.name),
       fill(typeTestTmpl, {

@@ -3,7 +3,6 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   authoredViewTypesOf,
-  unionMembers,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -57,7 +56,6 @@ class Generator extends Emit {
   ): GenerateEntry {
     const className = this.casing.convertTypes(view.name);
     const isUnion = isUnionLike(view);
-    const members = unionMembers(view) ?? [];
     const hasExtends = viewExtendsNamedDatasource(view, authored, typesByName);
     const fields = isUnion || hasExtends
       ? []
@@ -78,7 +76,7 @@ class Generator extends Emit {
         className,
         datasourceType: isUnion ? "standard" : (parent ?? "standard"),
         target: isUnion ? "UnionView" : "ShapedView",
-        fieldCount: String(isUnion ? members.length : fields.length),
+        fieldCount: String(isUnion ? 0 : fields.length),
         isUnion,
         isShaped: !isUnion,
         hasExtends,
