@@ -2,6 +2,7 @@ import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
+  columnFields,
   datasourceTypesOf,
   isPkField,
   tableByName,
@@ -36,7 +37,7 @@ class Generator extends Emit {
 
   private type(table: Type, overlay: DatasourceTable | undefined): GenerateEntry {
     const { schemaVersion, simpleDoc, descriptionDoc } = this.settings;
-    const fields = table.fields.map((f) => ({
+    const fields = columnFields(table.fields).map((f) => ({
       name: f.name,
       ident: this.casing.convertFields(f.name),
       csType: csTypeFor(f),

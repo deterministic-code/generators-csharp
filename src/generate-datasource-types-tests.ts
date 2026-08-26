@@ -1,7 +1,10 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import { datasourceTypesOf } from "@deterministic-code/generators-common/spec-types";
+import {
+  columnFields,
+  datasourceTypesOf,
+} from "@deterministic-code/generators-common/spec-types";
 import {
   DeterministicParser,
   TYPES_YAML,
@@ -105,7 +108,7 @@ class Generator extends Emit {
   }
 
   private tests(table: Type): GenerateEntry {
-    const fields = table.fields.map((f) =>
+    const fields = columnFields(table.fields).map((f) =>
       fieldTokens(
         f,
         (name) => this.casing.convertFields(name),
