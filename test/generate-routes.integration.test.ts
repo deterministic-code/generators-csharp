@@ -134,7 +134,7 @@ routes: []
     });
     const users = textOf(entries, "usersRouter.cs");
     assert.match(users, /Datasource type: standard/);
-    assert.match(users, /Target: StandardCrud/);
+    assert.doesNotMatch(users, /Target: StandardCrud/);
   });
 
   it("emits simple doc comments by default", async () => {
