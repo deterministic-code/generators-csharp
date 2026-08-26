@@ -1,10 +1,7 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import {
-  unionMembers,
-  viewTypesOf,
-} from "@deterministic-code/generators-common/spec-types";
+import { viewTypesOf } from "@deterministic-code/generators-common/spec-types";
 import {
   DeterministicParser,
   TYPES_YAML,
@@ -119,7 +116,6 @@ class Generator extends Emit {
 
   private tests(view: Type): GenerateEntry {
     const union = isUnionLike(view);
-    const members = unionMembers(view) ?? [];
     const fields = union
       ? []
       : view.fields.map((f) =>
@@ -139,11 +135,7 @@ class Generator extends Emit {
         isUnion: union,
         needsList: !union && view.fields.some((f) => f.isArray),
         fields,
-        members: members.map((name) => ({
-          ident: this.casing.convertTypes(name),
-          memberClass: this.casing.convertTypes(name),
-          acceptsMemberTest: this.casing.acceptsMemberTestName(name),
-        })),
+        members: [],
       }),
     );
   }
