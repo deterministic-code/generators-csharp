@@ -111,7 +111,7 @@ services: []
     });
     const user = textOf(entries, "userService.cs");
     assert.match(user, /Datasource type: standard/);
-    assert.match(user, /Target: StandardCrud/);
+    assert.doesNotMatch(user, /Target: StandardCrud/);
 
     const health = textOf(entries, "../custom/healthCheckService.cs");
     assert.match(health, /Target: Custom/);
