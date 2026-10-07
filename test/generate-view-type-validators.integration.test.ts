@@ -22,7 +22,7 @@ const TYPES = `types:
             type: string
   - payment:
       tags: [view_type]
-      one_of:
+      union:
         - card_payment
         - cash_payment
   - card_payment:
@@ -38,7 +38,7 @@ const TYPES = `types:
   - cash_payment:
       tags: [view_type]
       fields:
-        - amount:
+        - tendered:
             type: decimal
 `;
 
