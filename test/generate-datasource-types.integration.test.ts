@@ -79,29 +79,77 @@ describe("generate", () => {
         settings: { application_name: "catalog-api" },
       }),
     );
-    assert.deepEqual([...byName.keys()].sort(), ["role.cs", "user.cs"]);
+    assert.deepEqual(
+      [...byName.keys()].sort(),
+      [
+        "Types/Generated/Datasource/Role.cs",
+        "Types/Generated/Datasource/User.cs",
+      ],
+    );
   });
 
-  it("renders User against StandardDataSource", async () => {
+  it("renders User as a datasource class", async () => {
     const byName = indexEntries(
       await generate({
         reader: fixtureReader(),
         settings: { application_name: "catalog-api" },
       }),
     );
-    const user = entryBody(requireEntry(byName, "user.cs"));
-    assert.match(user, /schema-version: 1\.0/);
-    assert.match(user, /using Deterministic\.Types;/);
-    assert.match(user, /namespace Backend\.Types\.Datasource;/);
-    assert.match(
-      user,
-      /public class User : StandardDataSource<long, System\.DateTime>/,
+    const user = entryBody(
+      requireEntry(byName, "Types/Generated/Datasource/User.cs"),
     );
+    assert.match(user, /schema-version: 1\.0/);
+    assert.match(user, /namespace Backend\.Types\.Datasource;/);
+    assert.match(user, /public class User\n/);
     assert.match(user, /public long Id \{ get; set; \}/);
     assert.match(user, /public string Uuid \{ get; set; \}/);
     assert.match(user, /public System.DateTime Created \{ get; set; \}/);
     assert.match(user, /public System.DateTime Updated \{ get; set; \}/);
     assert.match(user, /public string Email \{ get; set; \}/);
     assert.match(user, /public long RoleId \{ get; set; \}/);
+  });
+
+  it("extends another datasource type and omits a removed parent field", async () => {
+    const map = indexEntries(
+      await generate({
+        reader: memoryReader({
+          [TYPES_YAML]: `types:
+  - user:
+      tags: [datasource_type]
+      inherits: set
+      fields:
+        - email:
+            type: string
+  - moderator:
+      tags: [datasource_type]
+      inherits: user
+      fields:
+        - level:
+            type: string
+  - guest:
+      tags: [datasource_type]
+      inherits: user
+      remove_fields: [email]
+      fields:
+        - token:
+            type: string
+`,
+        }),
+        settings: { application_name: "catalog-api" },
+      }),
+    );
+    const body = (filename: string) =>
+      entryBody(requireEntry(map, `Types/Generated/Datasource/${filename}`));
+    const moderator = body("Moderator.cs");
+    assert.match(moderator, /public class Moderator : User\n/);
+    assert.match(moderator, /public string Level \{ get; set; \}/);
+    assert.doesNotMatch(moderator, /Email/);
+    assert.doesNotMatch(moderator, /public long Id/);
+    const guest = body("Guest.cs");
+    assert.match(guest, /public class Guest\n/);
+    assert.match(guest, /public long Id \{ get; set; \}/);
+    assert.match(guest, /public string Token \{ get; set; \}/);
+    assert.doesNotMatch(guest, /Email/);
+    assert.doesNotMatch(guest, /: User/);
   });
 });

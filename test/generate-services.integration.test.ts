@@ -76,23 +76,23 @@ describe("generate-services", () => {
     const paths = entries
       .map((e) => (e.kind === "content" ? e.filename : e.filename))
       .sort();
-    assert.ok(paths.includes("userService.cs"), `got: ${paths.join(", ")}`);
-    assert.ok(paths.includes("roleService.cs"));
-    assert.ok(paths.includes("../custom/reportService.cs"));
-    assert.ok(paths.includes("../custom/healthCheckService.cs"));
+    assert.ok(paths.includes("UserService.cs"), `got: ${paths.join(", ")}`);
+    assert.ok(paths.includes("RoleService.cs"));
+    assert.ok(paths.includes("../custom/ReportService.cs"));
+    assert.ok(paths.includes("../custom/HealthCheckService.cs"));
 
-    const user = textOf(entries, "userService.cs");
+    const user = textOf(entries, "UserService.cs");
     assert.match(user, /namespace Backend\.Services\.Views;/);
     assert.match(user, /public class UserService \{ \}/);
     assert.ok(!user.includes("findBy"));
 
-    const report = textOf(entries, "../custom/reportService.cs");
+    const report = textOf(entries, "../custom/ReportService.cs");
     assert.match(report, /namespace Backend\.Services\.Custom;/);
     assert.match(report, /public interface IReportService \{ \}/);
     assert.match(report, /public class ReportService : IReportService \{ \}/);
     assert.ok(!report.includes("run("));
 
-    const health = textOf(entries, "../custom/healthCheckService.cs");
+    const health = textOf(entries, "../custom/HealthCheckService.cs");
     assert.match(health, /public class HealthCheckService : IHealthCheckService/);
   });
 
@@ -109,11 +109,11 @@ services: []
       ),
       settings: { comments: "description" },
     });
-    const user = textOf(entries, "userService.cs");
+    const user = textOf(entries, "UserService.cs");
     assert.match(user, /Datasource type: standard/);
     assert.doesNotMatch(user, /Target: StandardCrud/);
 
-    const health = textOf(entries, "../custom/healthCheckService.cs");
+    const health = textOf(entries, "../custom/HealthCheckService.cs");
     assert.match(health, /Target: Custom/);
   });
 
@@ -130,7 +130,7 @@ services: []
       ),
       settings: {},
     });
-    const user = textOf(entries, "userService.cs");
+    const user = textOf(entries, "UserService.cs");
     assert.match(user, /\/\*\* Service UserService\. \*\//);
   });
 
@@ -147,7 +147,7 @@ services: []
       ),
       settings: { comments: "none" },
     });
-    const user = textOf(entries, "userService.cs");
+    const user = textOf(entries, "UserService.cs");
     assert.ok(!user.includes("/**"));
   });
 });

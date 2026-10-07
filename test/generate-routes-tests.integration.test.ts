@@ -43,10 +43,10 @@ routes: []
     });
     assert.deepEqual(
       entries.map((e) => e.filename),
-      ["usersRouterTests.cs"],
+      ["UsersRouterTests.cs"],
     );
     assert.match(
-      textOf(entries, "usersRouterTests.cs"),
+      textOf(entries, "UsersRouterTests.cs"),
       /public class UsersRouterTests/,
     );
   });

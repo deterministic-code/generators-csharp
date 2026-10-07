@@ -33,11 +33,14 @@ const byFilename = async (settings: Record<string, string>) => {
 };
 
 describe("generate datasource types casing", () => {
-  it("Auto uses Camel files, Pascal types, Pascal fields", async () => {
+  it("Auto uses Pascal files, Pascal types, Pascal fields", async () => {
     const files = await byFilename({});
-    assert.deepEqual([...files.keys()], ["notificationType.cs"]);
-    const body = files.get("notificationType.cs")!;
-    assert.match(body, /public class NotificationType /);
+    assert.deepEqual(
+      [...files.keys()],
+      ["Types/Generated/Datasource/NotificationType.cs"],
+    );
+    const body = files.get("Types/Generated/Datasource/NotificationType.cs")!;
+    assert.match(body, /public class NotificationType\n/);
     assert.match(body, /public string ChannelName /);
   });
 
@@ -45,28 +48,31 @@ describe("generate datasource types casing", () => {
     const files = await byFilename({
       "languages.csharp.casing.file_names": "Pascal",
     });
-    assert.ok(files.has("NotificationType.cs"));
+    assert.ok(files.has("Types/Generated/Datasource/NotificationType.cs"));
   });
 
   it("Snake file names", async () => {
     const files = await byFilename({
       "languages.csharp.casing.file_names": "Snake",
     });
-    assert.ok(files.has("notification_type.cs"));
+    assert.ok(files.has("Types/Generated/Datasource/notification_type.cs"));
   });
 
   it("Kebab file names", async () => {
     const files = await byFilename({
       "languages.csharp.casing.file_names": "Kebab",
     });
-    assert.ok(files.has("notification-type.cs"));
+    assert.ok(files.has("Types/Generated/Datasource/notification-type.cs"));
   });
 
   it("Camel fields", async () => {
     const files = await byFilename({
       "languages.csharp.casing.fields": "Camel",
     });
-    assert.match(files.get("notificationType.cs")!, /public string channelName /);
+    assert.match(
+      files.get("Types/Generated/Datasource/NotificationType.cs")!,
+      /public string channelName /,
+    );
   });
 
   it("Snake fields", async () => {
@@ -74,7 +80,7 @@ describe("generate datasource types casing", () => {
       "languages.csharp.casing.fields": "Snake",
     });
     assert.match(
-      files.get("notificationType.cs")!,
+      files.get("Types/Generated/Datasource/NotificationType.cs")!,
       /public string channel_name /,
     );
   });
@@ -84,8 +90,8 @@ describe("generate datasource types casing", () => {
       "languages.csharp.casing.types": "Camel",
     });
     assert.match(
-      files.get("notificationType.cs")!,
-      /public class notificationType /,
+      files.get("Types/Generated/Datasource/NotificationType.cs")!,
+      /public class notificationType\n/,
     );
   });
 

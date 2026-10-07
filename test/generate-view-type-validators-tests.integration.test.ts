@@ -119,7 +119,7 @@ describe("generate view type validators tests", () => {
 
   it("covers parse, nullable, and null cases for a shaped view", async () => {
     const card = await bodyOf(
-      "cardPaymentValidatorTests.cs",
+      "CardPaymentValidatorTests.cs",
       {},
       SIMPLE_TYPES,
     );
@@ -130,17 +130,19 @@ describe("generate view type validators tests", () => {
     assert.match(card, /Note = null/);
   });
 
-  it("emits union member accept cases", async () => {
-    const payment = await bodyOf("paymentValidatorTests.cs");
-    assert.match(payment, /public void AcceptsCardPaymentMember\(/);
-    assert.match(payment, /public void AcceptsCashPaymentMember\(/);
-    assert.match(payment, /new PaymentValidator\(\)\.ValidateAndThrow\(value\)/);
-    assert.match(payment, /using System\.Collections\.Generic;/);
+  it("validates a union from its composed fields", async () => {
+    const payment = await bodyOf("PaymentValidatorTests.cs");
+    assert.match(payment, /public void ParsesAValidPayload\(/);
+    assert.match(payment, /new PaymentValidator\(\)\.Validate\(value\)/);
+    assert.match(payment, /Amount = /);
+    assert.match(payment, /Tendered = /);
+    assert.doesNotMatch(payment, /AcceptsCardPaymentMember/);
+    assert.doesNotMatch(payment, /ValidateAndThrow/);
   });
 
   it("writes codegen.schema_version into the file header", async () => {
     const card = await bodyOf(
-      "cardPaymentValidatorTests.cs",
+      "CardPaymentValidatorTests.cs",
       { "codegen.schema_version": "9.9" },
       SIMPLE_TYPES,
     );
