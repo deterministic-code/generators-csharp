@@ -30,7 +30,7 @@ const TYPES = `types:
         - value:
             type: string
             size: unlimited
-  - locale_pref:
+  - locale_preferences:
       tags: [view_type]
       fields:
         - locale:
@@ -39,7 +39,7 @@ const TYPES = `types:
         - timezone:
             type: string
             size: 64
-  - contact_prefs:
+  - contact_preferences:
       tags: [datasource_type]
       inherits: dictionary
       fields:
@@ -50,7 +50,7 @@ const TYPES = `types:
             type: string
             size: 64
         - value:
-            type: locale_pref
+            type: locale_preferences
   - contacts_ds:
       tags: [datasource_type]
       inherits: set
@@ -63,8 +63,8 @@ const TYPES = `types:
       inherits: contacts_ds
       fields:
         - prefs:
-            type: contact_prefs{}
-            references: contact_prefs.key
+            type: contact_preferences{}
+            references: contact_preferences.key
   - card_labels:
       tags: [view_type]
       inherits: dictionary
@@ -133,7 +133,7 @@ describe("owned dictionary codegen", () => {
     const file = bodyEnding(entries, "File.cs");
     assert.doesNotMatch(file, /Settings/);
     assert.doesNotMatch(file, /Dictionary</);
-    const prefs = bodyEnding(entries, "ContactPrefs.cs");
+    const prefs = bodyEnding(entries, "ContactPreferences.cs");
     assert.match(prefs, /public string Locale \{ get; set; \}/);
     assert.match(prefs, /public string Timezone \{ get; set; \}/);
     assert.doesNotMatch(prefs, /public .* Value /);
@@ -143,18 +143,18 @@ describe("owned dictionary codegen", () => {
     const entries = indexEntries(await generateViewTypes(ctx));
     assert.equal(hasEnding(entries, "Settings.cs"), false);
     assert.equal(hasEnding(entries, "CardLabels.cs"), false);
-    assert.equal(hasEnding(entries, "ContactPrefs.cs"), false);
+    assert.equal(hasEnding(entries, "ContactPreferences.cs"), false);
     const file = bodyEnding(entries, "File.cs");
     assert.match(file, /using System\.Collections\.Generic;/);
     assert.match(file, /public Dictionary<string, string> Settings \{ get; set; \}/);
     const contact = bodyEnding(entries, "Contact.cs");
     assert.match(
       contact,
-      /public Dictionary<string, LocalePref> Prefs \{ get; set; \}/,
+      /public Dictionary<string, LocalePreferences> Prefs \{ get; set; \}/,
     );
     const card = bodyEnding(entries, "ContactCard.cs");
     assert.match(card, /public Dictionary<string, string> Labels \{ get; set; \}/);
-    const locale = bodyEnding(entries, "LocalePref.cs");
-    assert.match(locale, /public class LocalePref/);
+    const locale = bodyEnding(entries, "LocalePreferences.cs");
+    assert.match(locale, /public class LocalePreferences/);
   });
 });
