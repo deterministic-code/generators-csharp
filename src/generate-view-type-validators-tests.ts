@@ -12,7 +12,6 @@ import {
   type Type,
   type TypeField,
 } from "./specification-parser.ts";
-import { isUnionLike } from "./common/view-shape.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTestTmpl } from "./resources/view-type-validators-tests.ts";
@@ -163,9 +162,6 @@ class Generator extends Emit {
     const view = this.views.get(name);
     if (view === undefined) return `new ${cls}()`;
     const next = new Set(visited).add(name);
-    if (isUnionLike(view)) {
-      return `new ${cls}()`;
-    }
     return objectLiteral(
       cls,
       this.shapedToks(view, next).map((f) => ({
@@ -223,18 +219,8 @@ class Generator extends Emit {
     return cases;
   }
 
-  private unionCases(view: Type): CaseTok[] {
-    return (view.union ?? []).map((name) => ({
-      ident: this.casing.acceptsMemberTestName(name),
-      fixture: this.viewFixture(name, new Set([view.name])),
-      assertion: "True",
-    }));
-  }
-
   private tests(view: Type): GenerateEntry {
-    const cases = isUnionLike(view)
-      ? this.unionCases(view)
-      : this.shapedCases(view);
+    const cases = this.shapedCases(view);
     return content(
       this.imports.test(this.imports.viewValidator(view.name), view.name),
       fill(typeTestTmpl, {
@@ -242,7 +228,7 @@ class Generator extends Emit {
         className: this.casing.convertTypes(view.name),
         testClassName: this.casing.validatorTestClassName(view.name),
         validatorClass: this.casing.convertTypes(`${view.name}_validator`),
-        isUnion: isUnionLike(view),
+        isUnion: false,
         needsList: cases.some((c) => c.fixture.includes("new List<")),
         cases,
       }),

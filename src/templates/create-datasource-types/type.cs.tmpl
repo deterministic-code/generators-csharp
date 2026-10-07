@@ -1,6 +1,4 @@
 // schema-version: {{schemaVersion}}
-using Deterministic.Types;
-
 namespace Backend.Types.Datasource;
 
 {{#simpleDoc}}/** Type {{className}}. */
@@ -9,7 +7,7 @@ namespace Backend.Types.Datasource;
  * Datasource type: {{datasourceType}}.
  * Fields: {{fieldCount}}.
  */
-{{/descriptionDoc}}public class {{className}} : StandardDataSource<{{idType}}, {{datetimeType}}>
+{{/descriptionDoc}}public class {{className}}{{#hasExtends}} : {{&extendsType}}{{/hasExtends}}
 {
 {{#fields}}
     public {{csType}} {{ident}} { get; set; }

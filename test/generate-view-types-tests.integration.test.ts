@@ -171,21 +171,21 @@ describe("generate view types tests", () => {
     assert.deepEqual(
       [...byName.keys()].sort(),
       [
-        "cardPaymentTests.cs",
-        "cashPaymentTests.cs",
-        "emptyUnionTests.cs",
-        "emptyViewTests.cs",
-        "paymentTests.cs",
-        "roleTests.cs",
-        "tagTests.cs",
-        "userSummaryTests.cs",
-        "userTests.cs",
+        "Types/Generated/Views/CardPaymentTests.cs",
+        "Types/Generated/Views/CashPaymentTests.cs",
+        "Types/Generated/Views/EmptyUnionTests.cs",
+        "Types/Generated/Views/EmptyViewTests.cs",
+        "Types/Generated/Views/PaymentTests.cs",
+        "Types/Generated/Views/RoleTests.cs",
+        "Types/Generated/Views/TagTests.cs",
+        "Types/Generated/Views/UserSummaryTests.cs",
+        "Types/Generated/Views/UserTests.cs",
       ],
     );
   });
 
   it("renders primitive, array, nested, and nullable accessor cases", async () => {
-    const card = await bodyOf("cardPaymentTests.cs");
+    const card = await bodyOf("CardPaymentTests.cs");
     assert.match(card, /schema-version: 1\.0/);
     assert.match(card, /using Backend\.Types\.View;/);
     assert.match(card, /using System\.Collections\.Generic;/);
@@ -209,32 +209,34 @@ describe("generate view types tests", () => {
     assert.doesNotMatch(card, /public void AllowsSettingAmountToNull\(/);
   });
 
-  it("renders a union view with member constructors", async () => {
-    const payment = await bodyOf("paymentTests.cs");
-    assert.match(payment, /public void AcceptsCardPaymentMember\(/);
-    assert.match(payment, /public void AcceptsCashPaymentMember\(/);
-    assert.match(payment, /var value = new CardPayment\(\);/);
+  it("renders a union view with composed fields", async () => {
+    const payment = await bodyOf("PaymentTests.cs");
+    assert.match(payment, /private static Payment Sample\(\) => new Payment/);
+    assert.match(payment, /public void GetsAmount\(/);
+    assert.match(payment, /public void GetsTendered\(/);
+    assert.match(payment, /public void GetsNote\(/);
+    assert.doesNotMatch(payment, /AcceptsCardPaymentMember/);
   });
 
   it("renders declared fields on an inherited view and empty views", async () => {
-    const summary = await bodyOf("userSummaryTests.cs");
+    const summary = await bodyOf("UserSummaryTests.cs");
     assert.match(summary, /public void GetsDisplayName\(/);
     assert.match(summary, /public void GetsRoleName\(/);
     assert.match(summary, /public void GetsEmail\(/);
-    const empty = await bodyOf("emptyViewTests.cs");
+    const empty = await bodyOf("EmptyViewTests.cs");
     assert.match(empty, /private static EmptyView Sample\(\) => new EmptyView/);
     assert.doesNotMatch(empty, /public void Gets/);
-    const union = await bodyOf("emptyUnionTests.cs");
+    const union = await bodyOf("EmptyUnionTests.cs");
     assert.doesNotMatch(union, /public void Accepts/);
   });
 
   it("omits the List import when a view has no array fields", async () => {
-    const cash = await bodyOf("cashPaymentTests.cs");
+    const cash = await bodyOf("CashPaymentTests.cs");
     assert.doesNotMatch(cash, /using System\.Collections\.Generic;/);
   });
 
   it("writes codegen.schema_version into the file header", async () => {
-    const card = await bodyOf("cardPaymentTests.cs", {
+    const card = await bodyOf("CardPaymentTests.cs", {
       "codegen.schema_version": "9.9",
     }, SIMPLE_TYPES);
     assert.match(card, /schema-version: 9.9/);

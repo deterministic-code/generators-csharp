@@ -1,10 +1,8 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import {
-  columnFields,
-  datasourceTypesOf,
-} from "@deterministic-code/generators-common/spec-types";
+import { datasourceTypesOf } from "@deterministic-code/generators-common/spec-types";
+import { classParent, declaredFields } from "./common/view-shape.ts";
 import {
   DeterministicParser,
   TYPES_YAML,
@@ -166,19 +164,31 @@ class Generator extends Emit {
   private readonly typesNamespace = "Backend.Types.Datasource";
 
   from(deterministic: IDeterministic): GenerateEntry[] {
+    const typesByName = new Map(
+      deterministic.expandedTypes.map((type) => [type.name, type]),
+    );
     return datasourceTypesOf(deterministic).map((table) =>
-      this.validator(table),
+      this.validator(table, typesByName),
     );
   }
 
-  private validator(table: Type): GenerateEntry {
+  private validator(table: Type, typesByName: Map<string, Type>): GenerateEntry {
     const className = this.casing.convertTypes(table.name);
     const convertFields = (name: string): string =>
       this.casing.convertFields(name);
-    const rules = columnFields(table.fields).map((field: TypeField) =>
-      STANDARD_COLUMN_NAMES.has(field.name)
-        ? standardRuleLine(field.name, field.type, convertFields)
-        : ruleLine(field, convertFields),
+    const parent = classParent(table, "datasource", typesByName);
+    const include =
+      parent === undefined
+        ? null
+        : `        Include(new ${this.casing.convertTypes(`datasource_${parent.name}_validator`)}());`;
+    const fieldRules = declaredFields(table, "datasource", typesByName).map(
+      (field: TypeField) =>
+        STANDARD_COLUMN_NAMES.has(field.name)
+          ? standardRuleLine(field.name, field.type, convertFields)
+          : ruleLine(field, convertFields),
+    );
+    const rules = [include, ...fieldRules].filter(
+      (line): line is string => line !== null && line !== "",
     );
     return content(
       this.imports.datasourceValidator(table.name),

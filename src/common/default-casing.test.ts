@@ -5,13 +5,13 @@ import { createCasing } from "./default-casing.ts";
 const NAME = "notification_type";
 
 describe("createCasing Auto defaults", () => {
-  it("matches Default Casings for C#", () => {
+  it("uses Pascal file names and Pascal types and fields", () => {
     const casing = createCasing({});
-    assert.equal(casing.convertFileName(NAME), "notificationType");
+    assert.equal(casing.convertFileName(NAME), "NotificationType");
     assert.equal(casing.convertTypes(NAME), "NotificationType");
     assert.equal(casing.convertFields(NAME), "NotificationType");
-    assert.equal(casing.convertDirectories(NAME), "notificationType");
-    assert.equal(casing.filePath(NAME), "notificationType.cs");
+    assert.equal(casing.convertDirectories(NAME), "NotificationType");
+    assert.equal(casing.filePath(NAME), "NotificationType.cs");
     assert.equal(casing.serviceClassName("user"), "UserService");
     assert.equal(casing.serviceInterfaceName("contact"), "IContactService");
     assert.equal(

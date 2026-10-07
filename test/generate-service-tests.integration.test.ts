@@ -46,9 +46,9 @@ describe("generate-service-tests", () => {
     });
     assert.deepEqual(
       entries.map((e) => e.filename),
-      ["userServiceTests.cs"],
+      ["UserServiceTests.cs"],
     );
-    const body = textOf(entries, "userServiceTests.cs");
+    const body = textOf(entries, "UserServiceTests.cs");
     assert.match(body, /namespace Backend.Services.Views.Tests;/);
     assert.match(body, /public class UserServiceTests/);
   });

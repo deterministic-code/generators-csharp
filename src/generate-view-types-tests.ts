@@ -9,7 +9,6 @@ import {
   type Type,
   type TypeField,
 } from "./specification-parser.ts";
-import { isUnionLike } from "./common/view-shape.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTestTmpl } from "./resources/view-types-tests.ts";
@@ -115,30 +114,24 @@ class Generator extends Emit {
   }
 
   private tests(view: Type): GenerateEntry {
-    const union = isUnionLike(view);
-    const fields = union
-      ? []
-      : view.fields.map((f) =>
-          fieldTokens(
-            f,
-            (text) => this.casing.convertTypes(text),
-            (name) => this.casing.convertFields(name),
-          ),
-        );
+    const fields = view.fields.map((f) =>
+      fieldTokens(
+        f,
+        (text) => this.casing.convertTypes(text),
+        (name) => this.casing.convertFields(name),
+      ),
+    );
     return content(
       this.imports.test(this.imports.view(view.name), view.name),
       fill(typeTestTmpl, {
         schemaVersion: this.settings.schemaVersion,
         className: this.casing.convertTypes(view.name),
         testClassName: this.casing.testClassName(view.name),
-        isShaped: !union,
-        isUnion: union,
-        needsList: !union && view.fields.some((f) => f.isArray),
+        isShaped: true,
+        isUnion: false,
+        needsList: view.fields.some((f) => f.isArray),
         fields,
-        members: (view.union ?? []).map((name) => ({
-          acceptsMemberTest: this.casing.acceptsMemberTestName(name),
-          memberClass: this.casing.convertTypes(name),
-        })),
+        members: [],
       }),
     );
   }

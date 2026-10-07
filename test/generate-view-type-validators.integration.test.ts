@@ -91,7 +91,7 @@ describe("generate view type validators", () => {
   });
 
   it("validates nested fields and union members", async () => {
-    const card = await bodyOf("cardPaymentValidator.cs");
+    const card = await bodyOf("CardPaymentValidator.cs");
     assert.match(
       card,
       /public class CardPaymentValidator : AbstractValidator<Backend\.Types\.View\.CardPayment>/,
@@ -105,11 +105,17 @@ describe("generate view type validators", () => {
       card,
       /RuleFor\(x => x\.Owner\)\n\s+\.SetValidator\(new UserValidator\(\)\)/,
     );
-    const payment = await bodyOf("paymentValidator.cs");
-    assert.match(payment, /public void ValidateAndThrow\(object obj\)/);
+    const payment = await bodyOf("PaymentValidator.cs");
     assert.match(
       payment,
-      /if \(obj is Backend\.Types\.View\.CardPayment AsCardPayment\)/,
+      /public class PaymentValidator : AbstractValidator<Backend\.Types\.View\.Payment>/,
     );
+    assert.match(payment, /RuleFor\(x => x\.Amount\)\n\s+\.NotNull\(\);/);
+    assert.match(payment, /RuleFor\(x => x\.Tendered\)\n\s+\.NotNull\(\);/);
+    assert.match(
+      payment,
+      /RuleFor\(x => x\.Owner\)\n\s+\.SetValidator\(new UserValidator\(\)\)/,
+    );
+    assert.doesNotMatch(payment, /ValidateAndThrow\(object obj\)/);
   });
 });

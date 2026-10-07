@@ -46,10 +46,10 @@ const byFilename = async (settings: Record<string, string>) => {
 };
 
 describe("generate services casing", () => {
-  it("Auto uses Camel files and Pascal types", async () => {
+  it("Auto uses Pascal files and Pascal types", async () => {
     const files = await byFilename({});
-    assert.ok(files.has("notificationTypeService.cs"));
-    const body = files.get("notificationTypeService.cs")!;
+    assert.ok(files.has("NotificationTypeService.cs"));
+    const body = files.get("NotificationTypeService.cs")!;
     assert.match(body, /public class NotificationTypeService /);
   });
 

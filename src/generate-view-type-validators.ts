@@ -1,14 +1,8 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import {
-  authoredViewTypesOf,
-  viewTypesOf,
-} from "@deterministic-code/generators-common/spec-types";
-import {
-  isUnionLike,
-  viewExtendsNamedDatasource,
-} from "./common/view-shape.ts";
+import { viewTypesOf } from "@deterministic-code/generators-common/spec-types";
+import { classParent, declaredFields } from "./common/view-shape.ts";
 import {
   DeterministicParser,
   TYPES_YAML,
@@ -56,56 +50,27 @@ class Generator extends Emit {
   }
 
   from(deterministic: IDeterministic): GenerateEntry[] {
-    const authoredByName = new Map(
-      authoredViewTypesOf(deterministic).map((v) => [v.name, v]),
-    );
     const typesByName = new Map(
       deterministic.expandedTypes.map((t) => [t.name, t]),
     );
     return viewTypesOf(deterministic).map((view) =>
-      this.view(view, authoredByName.get(view.name), typesByName),
+      this.view(view, typesByName),
     );
   }
 
-  private view(
-    view: Type,
-    authored: Type | undefined,
-    typesByName: Map<string, Type>,
-  ): GenerateEntry {
+  private view(view: Type, typesByName: Map<string, Type>): GenerateEntry {
     const className = this.casing.convertTypes(view.name);
     const validatorClass = this.viewValidator(view.name);
-    if (isUnionLike(view)) {
-      const branches = (view.union ?? []).map((name) => {
-        const typeName = this.casing.convertTypes(name);
-        const binding = `As${typeName}`;
-        return {
-          line: `if (obj is ${this.imports.viewQual(name)} ${binding})\n        {\n            new ${this.viewValidator(name)}().ValidateAndThrow(${binding});\n            return;\n        }`,
-        };
-      });
-      return content(
-        this.imports.viewValidator(view.name),
-        fill(typeTmpl, {
-          schemaVersion: this.settings.schemaVersion,
-          isUnion: true,
-          isShaped: false,
-          className,
-          validatorClass,
-          branches,
-          rules: [],
-        }),
-      );
-    }
+    const parent = classParent(view, "view", typesByName);
     const include =
-      viewExtendsNamedDatasource(view, authored, typesByName)
-        ? `        Include(new ${this.datasourceValidator(
-            view.inherits !== undefined && view.inherits !== "set"
-              ? view.inherits
-              : view.name,
-          )}());`
-        : null;
-    const fieldRules = viewExtendsNamedDatasource(view, authored, typesByName)
-      ? []
-      : view.fields.map((f) => this.ruleLine(f, typesByName));
+      parent === undefined
+        ? null
+        : parent.lane === "datasource"
+          ? `        Include(new ${this.datasourceValidator(parent.name)}());`
+          : `        Include(new ${this.viewValidator(parent.name)}());`;
+    const fieldRules = declaredFields(view, "view", typesByName).map((f) =>
+      this.ruleLine(f, typesByName),
+    );
     const rules = [include, ...fieldRules].filter(
       (x): x is string => x !== null && x !== "",
     );
@@ -113,12 +78,9 @@ class Generator extends Emit {
       this.imports.viewValidator(view.name),
       fill(typeTmpl, {
         schemaVersion: this.settings.schemaVersion,
-        isUnion: false,
-        isShaped: true,
         className,
         validatorClass,
         rules: rules.map((line) => ({ line })),
-        branches: [],
       }),
     );
   }

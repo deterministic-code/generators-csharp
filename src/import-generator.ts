@@ -15,6 +15,11 @@ const pluralSnake = (entity: string): string => {
   return parts.join("_");
 };
 
+const DATASOURCE_DIR = "Types/Generated/Datasource";
+const VIEW_DIR = "Types/Generated/Views";
+const DATASOURCE_VALIDATOR_DIR = `${DATASOURCE_DIR}/Validators`;
+const VIEW_VALIDATOR_DIR = `${VIEW_DIR}/Validators`;
+
 export class CsharpImportGenerator implements IImportGenerator {
   private readonly organizeByFeature: boolean;
   private readonly flat: boolean;
@@ -30,7 +35,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   datasource(entity: string): string {
-    return this.underBase(this.casedFile(entity));
+    return this.underBase(this.rel(DATASOURCE_DIR, this.casedFile(entity)));
   }
 
   datasourceRel(entity: string): string {
@@ -42,7 +47,12 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   datasourceValidator(entity: string): string {
-    return this.underBase(this.csFile(`datasource_${entity}_validator`));
+    return this.underBase(
+      this.rel(
+        DATASOURCE_VALIDATOR_DIR,
+        this.csFile(`datasource_${entity}_validator`),
+      ),
+    );
   }
 
   datasourceValidatorRel(entity: string): string {
@@ -50,7 +60,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   view(entity: string): string {
-    return this.underBase(this.csFile(entity));
+    return this.underBase(this.rel(VIEW_DIR, this.csFile(entity)));
   }
 
   viewRel(entity: string): string {
@@ -62,7 +72,9 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   viewValidator(entity: string): string {
-    return this.underBase(this.csFile(`${entity}_validator`));
+    return this.underBase(
+      this.rel(VIEW_VALIDATOR_DIR, this.csFile(`${entity}_validator`)),
+    );
   }
 
   viewValidatorRel(entity: string): string {
@@ -144,7 +156,10 @@ export class CsharpImportGenerator implements IImportGenerator {
     const stem = srcFile.includes("Validator")
       ? `${fileBase}_validator_tests`
       : `${fileBase}_tests`;
-    return this.underBase(this.csFile(stem));
+    const file = this.csFile(stem);
+    const slash = srcFile.lastIndexOf("/");
+    if (slash === -1) return this.underBase(file);
+    return `${srcFile.slice(0, slash)}/${file}`;
   }
 
   testSpec(_srcFile: string, _fileBase: string): string {
@@ -192,6 +207,11 @@ export class CsharpImportGenerator implements IImportGenerator {
     return this.organizeByFeature
       ? `Features/${this.casing.directory(entity)}/${file}`
       : file;
+  }
+
+  private rel(prefix: string, file: string): string {
+    if (this.organizeByFeature || this.flat) return file;
+    return `${prefix}/${file}`;
   }
 
   private underBase(file: string): string {

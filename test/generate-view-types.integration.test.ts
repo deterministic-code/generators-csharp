@@ -109,8 +109,8 @@ describe("generate view types", () => {
     );
   });
 
-  it("renders a shaped view, a union interface, and an inlined inherit", async () => {
-    const card = await bodyOf("cardPayment.cs");
+  it("renders a shaped view, a composed union, and an inlined inherit", async () => {
+    const card = await bodyOf("CardPayment.cs");
     assert.match(card, /namespace Backend\.Types\.View;/);
     assert.match(card, /public class CardPayment/);
     assert.match(card, /public string Amount \{ get; set; \}/);
@@ -120,9 +120,16 @@ describe("generate view types", () => {
     );
     assert.match(card, /public string\? Note \{ get; set; \}/);
     assert.match(card, /using System\.Collections\.Generic;/);
-    const payment = await bodyOf("payment.cs");
-    assert.match(payment, /public interface Payment \{\}/);
-    const summary = await bodyOf("userSummary.cs");
+    const payment = await bodyOf("Payment.cs");
+    assert.match(payment, /public class Payment\n/);
+    assert.match(payment, /public string Amount \{ get; set; \}/);
+    assert.match(
+      payment,
+      /public List<Backend\.Types\.Datasource\.Tag> Tags \{ get; set; \}/,
+    );
+    assert.match(payment, /public string\? Note \{ get; set; \}/);
+    assert.match(payment, /public string Tendered \{ get; set; \}/);
+    const summary = await bodyOf("UserSummary.cs");
     assert.match(summary, /public class UserSummary/);
     assert.doesNotMatch(summary, /: Backend\.Types\.Datasource\.User/);
     assert.match(summary, /public string DisplayName \{ get; set; \}/);
@@ -131,8 +138,81 @@ describe("generate view types", () => {
     assert.doesNotMatch(summary, /RoleId/);
   });
 
+  it("extends any inherited class and drops fields named in remove_fields", async () => {
+    const map = indexEntries(
+      await generate({
+        reader: memoryReader({
+          [TYPES_YAML]: `types:
+  - user:
+      tags: [datasource_type, view_type]
+      inherits: set
+      fields:
+        - email:
+            type: string
+  - tag:
+      tags: [datasource_type]
+      inherits: set
+      fields:
+        - label:
+            type: string
+  - profile:
+      tags: [view_type]
+      inherits: user
+      fields:
+        - title:
+            type: string
+  - label:
+      tags: [view_type]
+      inherits: tag
+      fields:
+        - caption:
+            type: string
+  - card_payment:
+      tags: [view_type]
+      fields:
+        - amount:
+            type: decimal
+        - note:
+            type: string
+  - cash_payment:
+      tags: [view_type]
+      fields:
+        - tendered:
+            type: decimal
+  - paid:
+      tags: [view_type]
+      union: [card_payment, cash_payment]
+      remove_fields: [note]
+`,
+        }),
+        settings: {},
+      }),
+    );
+    const body = (suffix: string) => {
+      const file = [...map.keys()].find((name) => name.endsWith(suffix));
+      assert.ok(file, `missing ${suffix} generate entry`);
+      return entryBody(requireEntry(map, file));
+    };
+    const profile = body("Profile.cs");
+    assert.match(profile, /public class Profile : User\n/);
+    assert.match(profile, /public string Title \{ get; set; \}/);
+    assert.doesNotMatch(profile, /Email/);
+    const label = body("Label.cs");
+    assert.match(
+      label,
+      /public class Label : Backend\.Types\.Datasource\.Tag\n/,
+    );
+    assert.match(label, /public string Caption \{ get; set; \}/);
+    assert.doesNotMatch(label, /public long Id/);
+    const paid = body("Paid.cs");
+    assert.match(paid, /public class Paid\n/);
+    assert.match(paid, /public string Amount \{ get; set; \}/);
+    assert.match(paid, /public string Tendered \{ get; set; \}/);
+    assert.doesNotMatch(paid, /Note/);
+  });
+
   it("extends the datasource type when inherit is a pass-through", async () => {
-    const role = await bodyOf("role.cs");
+    const role = await bodyOf("Role.cs");
     assert.match(
       role,
       /public class Role : Backend\.Types\.Datasource\.Role/,
