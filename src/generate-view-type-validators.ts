@@ -1,7 +1,11 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import { viewTypesOf } from "@deterministic-code/generators-common/spec-types";
+import {
+  dictionaryEntryFields,
+  dictionaryOfField,
+  viewTypesOf,
+} from "@deterministic-code/generators-common/spec-types";
 import { classParent, declaredFields } from "./common/view-shape.ts";
 import {
   DeterministicParser,
@@ -42,6 +46,14 @@ class Generator extends Emit {
           ? ""
           : `\n            .ForEach(x => x.SetValidator(new ${this.nestedValidator(field, typesByName)}()))`;
       return `        RuleFor(x => x.${prop})${notNull}${each};`;
+    }
+    const dict = dictionaryOfField(field, typesByName);
+    const entry = dict === undefined ? undefined : dictionaryEntryFields(dict);
+    if (entry !== undefined) {
+      if (entry.value.kind === "primitive") {
+        return `        RuleFor(x => x.${prop})${notNull};`;
+      }
+      return `        RuleForEach(x => x.${prop}.Values)${notNull}\n            .SetValidator(new ${this.nestedValidator(entry.value, typesByName)}());`;
     }
     if (field.kind === "primitive") {
       return `        RuleFor(x => x.${prop})${notNull};`;

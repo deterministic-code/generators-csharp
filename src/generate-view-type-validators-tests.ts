@@ -3,6 +3,8 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   datasourceTypesOf,
+  dictionaryEntryFields,
+  dictionaryOfField,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -83,9 +85,15 @@ const samplesForNative = (
 
 const wrapValue = (
   expr: string,
-  field: { isArray: boolean },
+  field: { isArray: boolean; isMap?: boolean },
   elemType: string,
-): string => (field.isArray ? `new List<${elemType}> { ${expr} }` : expr);
+  keyType = "string",
+): string => {
+  if (field.isMap === true) {
+    return `new Dictionary<${keyType}, ${elemType}> { ["k"] = ${expr} }`;
+  }
+  return field.isArray ? `new List<${elemType}> { ${expr} }` : expr;
+};
 
 const objectLiteral = (
   cls: string,
@@ -96,6 +104,7 @@ const objectLiteral = (
 class Generator extends Emit {
   private readonly tables: Map<string, Type>;
   private readonly views: Map<string, Type>;
+  private readonly typesByName: Map<string, Type>;
 
   constructor(raw: Record<string, string>, deterministic: IDeterministic) {
     super(raw);
@@ -103,6 +112,9 @@ class Generator extends Emit {
       datasourceTypesOf(deterministic).map((t) => [t.name, t]),
     );
     this.views = new Map(viewTypesOf(deterministic).map((v) => [v.name, v]));
+    this.typesByName = new Map(
+      deterministic.expandedTypes.map((t) => [t.name, t]),
+    );
   }
 
   from(): GenerateEntry[] {
@@ -132,22 +144,31 @@ class Generator extends Emit {
 
   private viewFieldTok(field: TypeField, visited: Set<string>): FieldTok {
     const ident = this.casing.convertFields(field.name);
+    const dict = dictionaryOfField(field, this.typesByName);
+    const entry = dict === undefined ? undefined : dictionaryEntryFields(dict);
+    const target = entry?.value ?? field;
     let sample: string;
     let elemType: string;
-    if (field.kind === "primitive") {
-      const native = convertSpecType(field.base);
-      sample = samplesForNative(native, field.base).sample;
+    const keyType =
+      entry === undefined
+        ? "string"
+        : entry.key.kind === "primitive"
+          ? convertSpecType(entry.key.base)
+          : this.viewType(entry.key.base);
+    if (target.kind === "primitive") {
+      const native = convertSpecType(target.base);
+      sample = samplesForNative(native, target.base).sample;
       elemType = native;
-    } else if (this.views.has(field.base)) {
-      sample = this.viewFixture(field.base, visited);
-      elemType = this.viewType(field.base);
+    } else if (this.views.has(target.base)) {
+      sample = this.viewFixture(target.base, visited);
+      elemType = this.viewType(target.base);
     } else {
-      sample = this.renderDs(field.base);
-      elemType = this.dsType(field.base);
+      sample = this.renderDs(target.base);
+      elemType = this.dsType(target.base);
     }
     return {
       ident,
-      sampleExpr: wrapValue(sample, field, elemType),
+      sampleExpr: wrapValue(sample, field, elemType, keyType),
       nullable: field.isNullable,
     };
   }
@@ -198,7 +219,12 @@ class Generator extends Emit {
       });
     }
     for (const field of view.fields) {
-      if (field.kind !== "primitive" || field.isNullable || field.isArray) {
+      if (
+        field.kind !== "primitive" ||
+        field.isNullable ||
+        field.isArray ||
+        field.isMap === true
+      ) {
         continue;
       }
       const native = convertSpecType(field.base);
@@ -229,7 +255,11 @@ class Generator extends Emit {
         testClassName: this.casing.validatorTestClassName(view.name),
         validatorClass: this.casing.convertTypes(`${view.name}_validator`),
         isUnion: false,
-        needsList: cases.some((c) => c.fixture.includes("new List<")),
+        needsList: cases.some(
+          (c) =>
+            c.fixture.includes("new List<") ||
+            c.fixture.includes("new Dictionary<"),
+        ),
         cases,
       }),
     );

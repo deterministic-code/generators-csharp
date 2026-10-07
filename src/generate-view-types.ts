@@ -1,7 +1,11 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import { viewTypesOf } from "@deterministic-code/generators-common/spec-types";
+import {
+  dictionaryEntryFields,
+  dictionaryOfField,
+  viewTypesOf,
+} from "@deterministic-code/generators-common/spec-types";
 import {
   classParent,
   declaredFields,
@@ -29,18 +33,24 @@ class Generator extends Emit {
     );
   }
 
+  private csPart(field: TypeField, typesByName: Map<string, Type>): string {
+    if (field.kind === "primitive") return convertSpecType(field.base);
+    const nested = typesByName.get(field.base);
+    return nested !== undefined && typeHasTag(nested, "view_type")
+      ? this.casing.convertTypes(field.base)
+      : this.imports.datasourceQual(field.base);
+  }
+
   private csTypeFor(field: TypeField, typesByName: Map<string, Type>): string {
+    const dict = dictionaryOfField(field, typesByName);
+    const entry = dict === undefined ? undefined : dictionaryEntryFields(dict);
     let base: string;
-    if (field.kind === "primitive") {
-      base = convertSpecType(field.base);
+    if (entry !== undefined) {
+      base = `Dictionary<${this.csPart(entry.key, typesByName)}, ${this.csPart(entry.value, typesByName)}>`;
     } else {
-      const nested = typesByName.get(field.base);
-      base =
-        nested !== undefined && typeHasTag(nested, "view_type")
-          ? this.casing.convertTypes(field.base)
-          : this.imports.datasourceQual(field.base);
+      base = this.csPart(field, typesByName);
+      if (field.isArray) base = `List<${base}>`;
     }
-    if (field.isArray) base = `List<${base}>`;
     return field.isNullable ? `${base}?` : base;
   }
 
@@ -61,7 +71,9 @@ class Generator extends Emit {
       ident: this.casing.convertFields(f.name),
       csType: this.csTypeFor(f, typesByName),
     }));
-    const needsList = fields.some((f) => f.csType.startsWith("List<"));
+    const needsList = fields.some(
+      (f) => f.csType.startsWith("List<") || f.csType.startsWith("Dictionary<"),
+    );
     return content(
       this.imports.view(view.name),
       fill(typeTmpl, {
