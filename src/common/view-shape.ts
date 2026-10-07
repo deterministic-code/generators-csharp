@@ -1,4 +1,7 @@
-import { columnFields } from "@deterministic-code/generators-common/spec-types";
+import {
+  columnFields,
+  persistedColumnFields,
+} from "@deterministic-code/generators-common/spec-types";
 import {
   typeHasTag,
   type Type,
@@ -27,8 +30,13 @@ const covers = (child: TypeField[], parent: TypeField[]): boolean => {
 export const visibleFields = (
   type: Type,
   lane: "view" | "datasource",
+  typesByName?: Map<string, Type>,
 ): TypeField[] =>
-  lane === "datasource" ? columnFields(type.fields) : type.fields;
+  lane === "datasource"
+    ? typesByName !== undefined
+      ? persistedColumnFields(type, typesByName)
+      : columnFields(type.fields)
+    : type.fields;
 
 /**
  * C# base class when `inherits` names a class and the child still has every
@@ -45,8 +53,11 @@ export const classParent = (
     const parentFields = visibleFields(
       typesByName.get(type.name) ?? type,
       "datasource",
+      typesByName,
     );
-    if (!covers(visibleFields(type, "view"), parentFields)) return undefined;
+    if (!covers(visibleFields(type, "view", typesByName), parentFields)) {
+      return undefined;
+    }
     return { name: type.name, lane: "datasource" };
   }
   const parentName = type.inherits;
@@ -60,7 +71,12 @@ export const classParent = (
   if (parentLane === "datasource" && !typeHasTag(parent, "datasource_type")) {
     return undefined;
   }
-  if (!covers(visibleFields(type, lane), visibleFields(parent, parentLane))) {
+  if (
+    !covers(
+      visibleFields(type, lane, typesByName),
+      visibleFields(parent, parentLane, typesByName),
+    )
+  ) {
     return undefined;
   }
   return { name: parentName, lane: parentLane };
@@ -72,13 +88,15 @@ export const declaredFields = (
   lane: "view" | "datasource",
   typesByName: Map<string, Type>,
 ): TypeField[] => {
-  const fields = visibleFields(type, lane);
+  const fields = visibleFields(type, lane, typesByName);
   const parent = classParent(type, lane, typesByName);
   if (parent === undefined) return fields;
   const parentType = typesByName.get(parent.name);
   if (parentType === undefined) return fields;
   const parentNames = new Set(
-    visibleFields(parentType, parent.lane).map((field) => field.name),
+    visibleFields(parentType, parent.lane, typesByName).map(
+      (field) => field.name,
+    ),
   );
   return fields.filter((field) => !parentNames.has(field.name));
 };
