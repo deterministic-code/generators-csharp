@@ -135,7 +135,10 @@ class Generator extends Emit {
         isUnion: union,
         needsList: !union && view.fields.some((f) => f.isArray),
         fields,
-        members: [],
+        members: (view.union ?? []).map((name) => ({
+          acceptsMemberTest: this.casing.acceptsMemberTestName(name),
+          memberClass: this.casing.convertTypes(name),
+        })),
       }),
     );
   }

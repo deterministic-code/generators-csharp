@@ -1,7 +1,6 @@
 import { typeHasTag, type Type } from "../specification-parser.ts";
 
-export const isUnionLike = (type: Type): boolean =>
-  type.kind === "union" || type.kind === "one_of";
+export const isUnionLike = (type: Type): boolean => type.kind === "union";
 
 /** Dual-tagged types emit a view class that extends the datasource class. */
 export const viewExtendsDatasource = (view: Type): boolean =>

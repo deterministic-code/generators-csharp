@@ -75,6 +75,13 @@ class Generator extends Emit {
     const className = this.casing.convertTypes(view.name);
     const validatorClass = this.viewValidator(view.name);
     if (isUnionLike(view)) {
+      const branches = (view.union ?? []).map((name) => {
+        const typeName = this.casing.convertTypes(name);
+        const binding = `As${typeName}`;
+        return {
+          line: `if (obj is ${this.imports.viewQual(name)} ${binding})\n        {\n            new ${this.viewValidator(name)}().ValidateAndThrow(${binding});\n            return;\n        }`,
+        };
+      });
       return content(
         this.imports.viewValidator(view.name),
         fill(typeTmpl, {
@@ -83,7 +90,7 @@ class Generator extends Emit {
           isShaped: false,
           className,
           validatorClass,
-          branches: [],
+          branches,
           rules: [],
         }),
       );

@@ -223,8 +223,18 @@ class Generator extends Emit {
     return cases;
   }
 
+  private unionCases(view: Type): CaseTok[] {
+    return (view.union ?? []).map((name) => ({
+      ident: this.casing.acceptsMemberTestName(name),
+      fixture: this.viewFixture(name, new Set([view.name])),
+      assertion: "True",
+    }));
+  }
+
   private tests(view: Type): GenerateEntry {
-    const cases = isUnionLike(view) ? [] : this.shapedCases(view);
+    const cases = isUnionLike(view)
+      ? this.unionCases(view)
+      : this.shapedCases(view);
     return content(
       this.imports.test(this.imports.viewValidator(view.name), view.name),
       fill(typeTestTmpl, {
