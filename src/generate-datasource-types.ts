@@ -12,7 +12,11 @@ import {
   type Type,
   type TypeField,
 } from "./specification-parser.ts";
-import { classParent, declaredFields } from "./common/view-shape.ts";
+import {
+  classParent,
+  declaredFields,
+  withClassParents,
+} from "./common/view-shape.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTmpl } from "./resources/datasource-types.ts";
@@ -27,9 +31,11 @@ class Generator extends Emit {
     const typesByName = new Map(
       deterministic.expandedTypes.map((type) => [type.name, type]),
     );
-    return datasourceTypesOf(deterministic).map((table) =>
-      this.type(table, typesByName),
-    );
+    return withClassParents(
+      datasourceTypesOf(deterministic),
+      "datasource",
+      typesByName,
+    ).map((table) => this.type(table, typesByName));
   }
 
   private type(table: Type, typesByName: Map<string, Type>): GenerateEntry {

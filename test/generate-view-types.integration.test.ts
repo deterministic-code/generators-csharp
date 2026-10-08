@@ -218,4 +218,41 @@ describe("generate view types", () => {
       /public class Role : Backend\.Types\.Datasource\.Role/,
     );
   });
+
+  it("emits an untagged inherit source so the child can extend it", async () => {
+    const map = indexEntries(
+      await generate({
+        reader: memoryReader({
+          [TYPES_YAML]: `types:
+  - base:
+      fields:
+        - id:
+            type: integer
+            is_id: true
+        - uuid:
+            type: uuid
+  - address:
+      tags: [view_type]
+      inherits: base
+      fields:
+        - line1:
+            type: string
+`,
+        }),
+        settings: {},
+      }),
+    );
+    const body = (suffix: string) => {
+      const file = [...map.keys()].find((name) => name.endsWith(suffix));
+      assert.ok(file, `missing ${suffix} generate entry`);
+      return entryBody(requireEntry(map, file));
+    };
+    const base = body("Base.cs");
+    assert.match(base, /public class Base\n/);
+    assert.match(base, /public long Id \{ get; set; \}/);
+    const address = body("Address.cs");
+    assert.match(address, /public class Address : Base\n/);
+    assert.match(address, /public string Line1 \{ get; set; \}/);
+    assert.doesNotMatch(address, /public long Id/);
+  });
 });

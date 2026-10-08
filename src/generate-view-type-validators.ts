@@ -6,7 +6,11 @@ import {
   dictionaryOfField,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
-import { classParent, declaredFields } from "./common/view-shape.ts";
+import {
+  classParent,
+  declaredFields,
+  withClassParents,
+} from "./common/view-shape.ts";
 import {
   DeterministicParser,
   TYPES_YAML,
@@ -65,8 +69,8 @@ class Generator extends Emit {
     const typesByName = new Map(
       deterministic.expandedTypes.map((t) => [t.name, t]),
     );
-    return viewTypesOf(deterministic).map((view) =>
-      this.view(view, typesByName),
+    return withClassParents(viewTypesOf(deterministic), "view", typesByName).map(
+      (view) => this.view(view, typesByName),
     );
   }
 

@@ -41,8 +41,9 @@ export const visibleFields = (
 /**
  * C# base class when `inherits` names a class and the child still has every
  * parent property. `remove_fields` that drops a parent property stays a flat
- * class, because C# cannot omit an inherited member. `set` and `dictionary`
- * are not classes. A dual-tagged view extends its datasource class.
+ * class, because C# cannot omit an inherited member. `set`, `dictionary`, and
+ * `file` are not classes. An untagged parent that exists in the spec is still
+ * a class. A dual-tagged view extends its datasource class.
  */
 export const classParent = (
   type: Type,
@@ -67,10 +68,10 @@ export const classParent = (
   const parent = typesByName.get(parentName);
   if (parent === undefined) return undefined;
   const parentLane: "view" | "datasource" =
-    lane === "view" && typeHasTag(parent, "view_type") ? "view" : "datasource";
-  if (parentLane === "datasource" && !typeHasTag(parent, "datasource_type")) {
-    return undefined;
-  }
+    lane === "view" &&
+    (typeHasTag(parent, "view_type") || !typeHasTag(parent, "datasource_type"))
+      ? "view"
+      : "datasource";
   if (
     !covers(
       visibleFields(type, lane, typesByName),
@@ -80,6 +81,27 @@ export const classParent = (
     return undefined;
   }
   return { name: parentName, lane: parentLane };
+};
+
+/** Tagged types plus class parents that this lane must emit (untagged bases). */
+export const withClassParents = (
+  types: readonly Type[],
+  lane: "view" | "datasource",
+  typesByName: Map<string, Type>,
+): Type[] => {
+  const seen = new Map(types.map((type) => [type.name, type]));
+  const visit = (type: Type): void => {
+    const parent = classParent(type, lane, typesByName);
+    if (parent === undefined || parent.lane !== lane || seen.has(parent.name)) {
+      return;
+    }
+    const parentType = typesByName.get(parent.name);
+    if (parentType === undefined) return;
+    seen.set(parentType.name, parentType);
+    visit(parentType);
+  };
+  for (const type of types) visit(type);
+  return [...seen.values()];
 };
 
 /** Fields declared on this class. Parent properties stay on the base class. */
