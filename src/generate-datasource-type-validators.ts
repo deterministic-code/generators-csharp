@@ -2,7 +2,11 @@ import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import { datasourceTypesOf } from "@deterministic-code/generators-common/spec-types";
-import { classParent, declaredFields } from "./common/view-shape.ts";
+import {
+  classParent,
+  declaredFields,
+  withClassParents,
+} from "./common/view-shape.ts";
 import {
   DeterministicParser,
   TYPES_YAML,
@@ -167,9 +171,11 @@ class Generator extends Emit {
     const typesByName = new Map(
       deterministic.expandedTypes.map((type) => [type.name, type]),
     );
-    return datasourceTypesOf(deterministic).map((table) =>
-      this.validator(table, typesByName),
-    );
+    return withClassParents(
+      datasourceTypesOf(deterministic),
+      "datasource",
+      typesByName,
+    ).map((table) => this.validator(table, typesByName));
   }
 
   private validator(table: Type, typesByName: Map<string, Type>): GenerateEntry {

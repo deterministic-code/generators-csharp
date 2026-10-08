@@ -171,15 +171,15 @@ describe("generate view types tests", () => {
     assert.deepEqual(
       [...byName.keys()].sort(),
       [
-        "Types/Generated/Views/CardPaymentTests.cs",
-        "Types/Generated/Views/CashPaymentTests.cs",
-        "Types/Generated/Views/EmptyUnionTests.cs",
-        "Types/Generated/Views/EmptyViewTests.cs",
-        "Types/Generated/Views/PaymentTests.cs",
-        "Types/Generated/Views/RoleTests.cs",
-        "Types/Generated/Views/TagTests.cs",
-        "Types/Generated/Views/UserSummaryTests.cs",
-        "Types/Generated/Views/UserTests.cs",
+        "Types/View/Generated/CardPaymentTests.cs",
+        "Types/View/Generated/CashPaymentTests.cs",
+        "Types/View/Generated/EmptyUnionTests.cs",
+        "Types/View/Generated/EmptyViewTests.cs",
+        "Types/View/Generated/PaymentTests.cs",
+        "Types/View/Generated/RoleTests.cs",
+        "Types/View/Generated/TagTests.cs",
+        "Types/View/Generated/UserSummaryTests.cs",
+        "Types/View/Generated/UserTests.cs",
       ],
     );
   });

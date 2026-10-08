@@ -82,8 +82,8 @@ describe("generate", () => {
     assert.deepEqual(
       [...byName.keys()].sort(),
       [
-        "Types/Generated/Datasource/Role.cs",
-        "Types/Generated/Datasource/User.cs",
+        "Types/Datasource/Generated/Role.cs",
+        "Types/Datasource/Generated/User.cs",
       ],
     );
   });
@@ -96,7 +96,7 @@ describe("generate", () => {
       }),
     );
     const user = entryBody(
-      requireEntry(byName, "Types/Generated/Datasource/User.cs"),
+      requireEntry(byName, "Types/Datasource/Generated/User.cs"),
     );
     assert.match(user, /schema-version: 1\.0/);
     assert.match(user, /namespace Backend\.Types\.Datasource;/);
@@ -139,7 +139,7 @@ describe("generate", () => {
       }),
     );
     const body = (filename: string) =>
-      entryBody(requireEntry(map, `Types/Generated/Datasource/${filename}`));
+      entryBody(requireEntry(map, `Types/Datasource/Generated/${filename}`));
     const moderator = body("Moderator.cs");
     assert.match(moderator, /public class Moderator : User\n/);
     assert.match(moderator, /public string Level \{ get; set; \}/);
@@ -151,5 +151,48 @@ describe("generate", () => {
     assert.match(guest, /public string Token \{ get; set; \}/);
     assert.doesNotMatch(guest, /Email/);
     assert.doesNotMatch(guest, /: User/);
+  });
+
+  it("emits an untagged inherit source so the child can extend it", async () => {
+    const map = indexEntries(
+      await generate({
+        reader: memoryReader({
+          [TYPES_YAML]: `types:
+  - base:
+      fields:
+        - id:
+            type: integer
+            is_id: true
+        - uuid:
+            type: uuid
+        - created:
+            type: datetime
+        - updated:
+            type: datetime
+        - version:
+            type: binary
+  - address_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - line1:
+            type: string
+`,
+        }),
+        settings: { application_name: "catalog-api" },
+      }),
+    );
+    assert.ok(map.has("Types/Datasource/Generated/Base.cs"));
+    const body = (filename: string) =>
+      entryBody(requireEntry(map, `Types/Datasource/Generated/${filename}`));
+    const base = body("Base.cs");
+    assert.match(base, /public class Base\n/);
+    assert.match(base, /public long Id \{ get; set; \}/);
+    assert.match(base, /public string Uuid \{ get; set; \}/);
+    const address = body("AddressBase.cs");
+    assert.match(address, /public class AddressBase : Base\n/);
+    assert.match(address, /public string Line1 \{ get; set; \}/);
+    assert.doesNotMatch(address, /public long Id/);
+    assert.doesNotMatch(address, /public string Uuid/);
   });
 });

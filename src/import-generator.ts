@@ -15,8 +15,8 @@ const pluralSnake = (entity: string): string => {
   return parts.join("_");
 };
 
-const DATASOURCE_DIR = "Types/Generated/Datasource";
-const VIEW_DIR = "Types/Generated/Views";
+const DATASOURCE_DIR = "Types/Datasource/Generated";
+const VIEW_DIR = "Types/View/Generated";
 const DATASOURCE_VALIDATOR_DIR = `${DATASOURCE_DIR}/Validators`;
 const VIEW_VALIDATOR_DIR = `${VIEW_DIR}/Validators`;
 

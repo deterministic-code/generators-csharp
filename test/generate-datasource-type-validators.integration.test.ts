@@ -95,8 +95,8 @@ describe("generate datasource type validators", () => {
     assert.deepEqual(
       [...byName.keys()].sort(),
       [
-        "Types/Generated/Datasource/Validators/DatasourceRoleValidator.cs",
-        "Types/Generated/Datasource/Validators/DatasourceUserValidator.cs",
+        "Types/Datasource/Generated/Validators/DatasourceRoleValidator.cs",
+        "Types/Datasource/Generated/Validators/DatasourceUserValidator.cs",
       ],
     );
   });

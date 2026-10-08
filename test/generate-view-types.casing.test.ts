@@ -32,8 +32,8 @@ const byFilename = async (settings: Record<string, string>) => {
 describe("generate view types casing", () => {
   it("Auto uses Pascal files, Pascal types, Pascal fields", async () => {
     const files = await byFilename({});
-    assert.ok(files.has("Types/Generated/Views/NotificationType.cs"));
-    const body = files.get("Types/Generated/Views/NotificationType.cs")!;
+    assert.ok(files.has("Types/View/Generated/NotificationType.cs"));
+    const body = files.get("Types/View/Generated/NotificationType.cs")!;
     assert.match(body, /public class NotificationType/);
     assert.match(body, /public string ChannelName /);
   });
@@ -42,14 +42,14 @@ describe("generate view types casing", () => {
     const files = await byFilename({
       "languages.csharp.casing.file_names": "Pascal",
     });
-    assert.ok(files.has("Types/Generated/Views/NotificationType.cs"));
+    assert.ok(files.has("Types/View/Generated/NotificationType.cs"));
   });
 
   it("Snake file names", async () => {
     const files = await byFilename({
       "languages.csharp.casing.file_names": "Snake",
     });
-    assert.ok(files.has("Types/Generated/Views/notification_type.cs"));
+    assert.ok(files.has("Types/View/Generated/notification_type.cs"));
   });
 
   it("Camel fields", async () => {
@@ -57,7 +57,7 @@ describe("generate view types casing", () => {
       "languages.csharp.casing.fields": "Camel",
     });
     assert.match(
-      files.get("Types/Generated/Views/NotificationType.cs")!,
+      files.get("Types/View/Generated/NotificationType.cs")!,
       /public string channelName /,
     );
   });
