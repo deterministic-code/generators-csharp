@@ -195,4 +195,31 @@ describe("generate", () => {
     assert.doesNotMatch(address, /public long Id/);
     assert.doesNotMatch(address, /public string Uuid/);
   });
+
+  it("infers FK type from the referenced parent field", async () => {
+    const byName = indexEntries(
+      await generate({
+        reader: memoryReader({
+          [TYPES_YAML]: `types:
+  - parent:
+      tags: [datasource_type]
+      inherits: set
+      fields: []
+  - child:
+      tags: [datasource_type]
+      inherits: set
+      fields:
+        - owner_id:
+            references: parent.id
+`,
+        }),
+        settings: { application_name: "catalog-api" },
+      }),
+    );
+    const child = entryBody(
+      requireEntry(byName, "Types/Datasource/Generated/Child.cs"),
+    );
+    assert.match(child, /public long OwnerId \{ get; set; \}/);
+    assert.doesNotMatch(child, /public string OwnerId/);
+  });
 });

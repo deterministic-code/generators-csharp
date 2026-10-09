@@ -3,6 +3,7 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   datasourceTypesOf,
+  fieldTypeOf,
   persistedColumnFields,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -10,6 +11,7 @@ import {
   TYPES_YAML,
   type IDeterministic,
   type Type,
+  type TypeField,
 } from "./specification-parser.ts";
 import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -80,17 +82,15 @@ const samplesForNative = (
 };
 
 const fieldTokens = (
-  field: {
-    name: string;
-    type: string;
-    isNullable: boolean;
-  },
+  field: TypeField,
   convertFields: (name: string) => string,
   convertTypes: (name: string) => string,
+  typesByName: ReadonlyMap<string, Type>,
 ) => {
   const ident = convertFields(field.name);
-  const native = convertSpecType(field.type);
-  const { sample, next } = samplesForNative(native, field.type);
+  const specType = fieldTypeOf(field, typesByName);
+  const native = convertSpecType(specType);
+  const { sample, next } = samplesForNative(native, specType);
   return {
     ident,
     sampleExpr: sample,
@@ -118,6 +118,7 @@ class Generator extends Emit {
         f,
         (name) => this.casing.convertFields(name),
         (name) => this.casing.convertTypes(name),
+        typesByName,
       ),
     );
     return content(
