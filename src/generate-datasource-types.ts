@@ -3,6 +3,7 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   datasourceTypesOf,
+  fieldTypeOf,
   tableKind,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -21,8 +22,11 @@ import { convertSpecType } from "./base-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTmpl } from "./resources/datasource-types.ts";
 
-const csTypeFor = (field: TypeField): string => {
-  const t = convertSpecType(field.type);
+const csTypeFor = (
+  field: TypeField,
+  typesByName: ReadonlyMap<string, Type>,
+): string => {
+  const t = convertSpecType(fieldTypeOf(field, typesByName));
   return field.isNullable ? `${t}?` : t;
 };
 
@@ -43,7 +47,7 @@ class Generator extends Emit {
     const parent = classParent(table, "datasource", typesByName);
     const fields = declaredFields(table, "datasource", typesByName).map((f) => ({
       ident: this.casing.convertFields(f.name),
-      csType: csTypeFor(f),
+      csType: csTypeFor(f, typesByName),
     }));
     const className = this.casing.convertTypes(table.name);
     return content(
