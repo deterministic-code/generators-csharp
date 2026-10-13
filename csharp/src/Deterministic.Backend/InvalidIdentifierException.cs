@@ -1,6 +1,6 @@
-namespace Deterministic.Backend.Errors;
+namespace Deterministic.Backend;
 
-public sealed class InvalidIdentifierException : RepositoryException
+public sealed class InvalidIdentifierException : Exception
 {
     public InvalidIdentifierException(string name)
         : base($"invalid SQL identifier: {name}")

@@ -6,15 +6,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>Deterministic.Backend</PackageId>
     <Authors>Deterministic Backend Authors</Authors>
-    <Description>Cross-database repositories layer for the deterministic project.</Description>
+    <Description>Shared backend types and SQL identifier helpers for the deterministic project.</Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <PackageReference Include="Npgsql" />
-    <PackageReference Include="MySqlConnector" />
-    <PackageReference Include="Microsoft.Data.SqlClient" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" />
-  </ItemGroup>
 
 </Project>
