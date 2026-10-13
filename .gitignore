@@ -4,3 +4,4 @@ csharp/bin
 csharp/obj
 *.log
 .DS_Store
+.worktrees/

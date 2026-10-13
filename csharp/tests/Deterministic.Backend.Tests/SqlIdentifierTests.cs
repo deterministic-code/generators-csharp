@@ -1,5 +1,4 @@
 using Deterministic.Backend;
-using Deterministic.Backend.Errors;
 
 namespace Deterministic.Backend.Tests;
 

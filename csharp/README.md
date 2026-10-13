@@ -1,8 +1,7 @@
 # Deterministic.Backend (C#)
 
-C# / .NET 8 port of the `deterministic` repositories layer. See the
-[root README](../README.md) for the canonical project overview and the cross-language
-contract.
+Shared backend types and SQL identifier helpers for generated C# apps.
+Persistence lives in Datasources-generated repositories, not this library.
 
 ## Layout
 
@@ -18,16 +17,3 @@ dotnet build
 dotnet test
 dotnet format --verify-no-changes
 ```
-
-## Driver tiers
-
-| Backend  | Status | Driver |
-|----------|--------|--------|
-| sqlite   | live in-memory `:memory:` | `Microsoft.Data.Sqlite` |
-| postgres | SQL strings only; runtime methods throw `UnimplementedException` | `Npgsql` |
-| mysql    | SQL strings only; runtime methods throw `UnimplementedException` | `MySqlConnector` |
-| sqlserver| SQL strings only; runtime methods throw `UnimplementedException` | `Microsoft.Data.SqlClient` |
-| oracle   | SQL strings only; runtime methods throw `UnimplementedException` | `Oracle.ManagedDataAccess.Core` |
-
-Live tiers are wired in follow-up PRs once CI infrastructure exists for spinning up real
-databases.
