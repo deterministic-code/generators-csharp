@@ -13,7 +13,7 @@ import {
   type Type,
   type TypeField,
 } from "./specification-parser.ts";
-import { convertSpecType } from "./base-type-converter.ts";
+import { convertSpecType } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTestTmpl } from "./resources/datasource-type-validators-tests.ts";
 

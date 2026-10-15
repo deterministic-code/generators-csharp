@@ -18,7 +18,7 @@ import {
   declaredFields,
   withClassParents,
 } from "./common/view-shape.ts";
-import { convertSpecType } from "./base-type-converter.ts";
+import { convertSpecType } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTmpl } from "./resources/datasource-types.ts";
 
