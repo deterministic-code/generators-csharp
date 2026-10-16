@@ -18,7 +18,10 @@ import {
   declaredFields,
   withClassParents,
 } from "./common/view-shape.ts";
-import { convertSpecType } from "./deterministic-type-converter.ts";
+import {
+  convertSpecType,
+  nativeDefaultExpr,
+} from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTmpl } from "./resources/datasource-types.ts";
 
@@ -45,10 +48,15 @@ class Generator extends Emit {
   private type(table: Type, typesByName: Map<string, Type>): GenerateEntry {
     const { schemaVersion, simpleDoc, descriptionDoc } = this.settings;
     const parent = classParent(table, "datasource", typesByName);
-    const fields = declaredFields(table, "datasource", typesByName).map((f) => ({
-      ident: this.casing.convertFields(f.name),
-      csType: csTypeFor(f, typesByName),
-    }));
+    const fields = declaredFields(table, "datasource", typesByName).map((f) => {
+      const initializer = nativeDefaultExpr(fieldTypeOf(f, typesByName), f);
+      return {
+        ident: this.casing.convertFields(f.name),
+        csType: csTypeFor(f, typesByName),
+        hasInitializer: initializer !== undefined,
+        initializer: initializer ?? "",
+      };
+    });
     const className = this.casing.convertTypes(table.name);
     return content(
       this.imports.datasource(table.name),

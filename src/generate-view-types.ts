@@ -4,6 +4,7 @@ import { content, type GenerateEntry } from "@deterministic-code/generators-comm
 import {
   dictionaryEntryFields,
   dictionaryOfField,
+  fieldTypeOf,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -20,7 +21,10 @@ import {
   type Type,
   type TypeField,
 } from "./specification-parser.ts";
-import { convertSpecType } from "./deterministic-type-converter.ts";
+import {
+  convertSpecType,
+  nativeDefaultExpr,
+} from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
 import { typeTmpl } from "./resources/view-types.ts";
 
@@ -70,10 +74,18 @@ class Generator extends Emit {
     const className = this.casing.convertTypes(view.name);
     const isUnion = isUnionLike(view);
     const parent = classParent(view, "view", typesByName);
-    const fields = declaredFields(view, "view", typesByName).map((f) => ({
-      ident: this.casing.convertFields(f.name),
-      csType: this.csTypeFor(f, typesByName),
-    }));
+    const fields = declaredFields(view, "view", typesByName).map((f) => {
+      const initializer =
+        f.kind === "primitive"
+          ? nativeDefaultExpr(fieldTypeOf(f, typesByName), f)
+          : undefined;
+      return {
+        ident: this.casing.convertFields(f.name),
+        csType: this.csTypeFor(f, typesByName),
+        hasInitializer: initializer !== undefined,
+        initializer: initializer ?? "",
+      };
+    });
     const needsList = fields.some(
       (f) => f.csType.startsWith("List<") || f.csType.startsWith("Dictionary<"),
     );

@@ -255,4 +255,67 @@ describe("generate view types", () => {
     assert.match(address, /public string Line1 \{ get; set; \}/);
     assert.doesNotMatch(address, /public long Id/);
   });
+
+  it("initializes non-zero spec defaults and skips language zeros", async () => {
+    const map = indexEntries(
+      await generate({
+        reader: memoryReader({
+          [TYPES_YAML]: `types:
+  - flags:
+      tags: [view_type]
+      fields:
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_disabled:
+            type: boolean
+            default_value: false
+        - count:
+            type: integer
+            default_value: 0
+        - rank:
+            type: integer
+            default_value: 1
+        - empty_name:
+            type: string
+            default_value: ""
+        - title:
+            type: string
+            default_value: hello
+        - blob:
+            type: binary
+            default_value: Hex('00')
+        - stamped:
+            type: datetime
+            default_value: UtcNow
+        - opted_out:
+            type: boolean
+            is_nullable: true
+            default_value: false
+        - token:
+            type: uuid
+            default_value: NewId
+        - price:
+            type: decimal
+            default_value: "1.50"
+`,
+        }),
+        settings: {},
+      }),
+    );
+    const file = [...map.keys()].find((name) => name.endsWith("Flags.cs"));
+    assert.ok(file, "missing Flags.cs generate entry");
+    const flags = entryBody(requireEntry(map, file));
+    assert.match(flags, /public bool IsEnabled \{ get; set; \} = true;/);
+    assert.doesNotMatch(flags, /IsDisabled \{ get; set; \} =/);
+    assert.doesNotMatch(flags, /Count \{ get; set; \} =/);
+    assert.match(flags, /public long Rank \{ get; set; \} = 1;/);
+    assert.match(flags, /public string EmptyName \{ get; set; \} = "";/);
+    assert.match(flags, /public string Title \{ get; set; \} = "hello";/);
+    assert.match(flags, /new byte\[\] \{ 0 \}/);
+    assert.match(flags, /DateTime\.UtcNow/);
+    assert.match(flags, /public bool\? OptedOut \{ get; set; \} = false;/);
+    assert.match(flags, /Guid\.NewGuid\(\)\.ToString\(\)/);
+    assert.match(flags, /public string Price \{ get; set; \} = "1.50";/);
+  });
 });
