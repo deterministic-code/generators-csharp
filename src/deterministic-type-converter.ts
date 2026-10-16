@@ -57,7 +57,7 @@ export const defaultValueConverter = new DeterministicDefaultValueConverter({
   unsignedbiginteger: numeric("unsignedbiginteger"),
   float: numeric("float"),
   decimal: {
-    ...numeric("decimal"),
+    Numeric: token(spec.decimal.Numeric!, csString, /^"(.*)"$/),
     String: quoted,
   },
   boolean: {
@@ -90,8 +90,8 @@ export const defaultValueConverter = new DeterministicDefaultValueConverter({
   uuid: {
     NewId: token(
       spec.uuid.NewId!,
-      () => "Guid.NewGuid()",
-      /^Guid\.NewGuid\(\)$/,
+      () => "Guid.NewGuid().ToString()",
+      /^Guid\.NewGuid\(\)\.ToString\(\)$/,
     ),
     Empty: token(
       spec.uuid.Empty!,
@@ -107,3 +107,38 @@ export const toNative = (specType: string): string =>
   typeConverter.convert(specType);
 
 export const convertSpecType = toNative;
+
+const CS_NUMERIC = new Set([
+  "long",
+  "uint",
+  "short",
+  "ushort",
+  "ulong",
+  "double",
+]);
+
+const isCsZero = (specType: string, expr: string): boolean => {
+  const native = toNative(specType);
+  if (native === "bool") return expr === "false";
+  if (CS_NUMERIC.has(native)) return /^0(\.0+)?$/.test(expr);
+  return false;
+};
+
+/** Native initializer, or `undefined` when absent or the language zero. */
+export const nativeDefaultExpr = (
+  specType: string,
+  field: {
+    hasDefault?: boolean;
+    defaultValue?: string | number | boolean | null;
+    isNullable: boolean;
+  },
+): string | undefined => {
+  if (field.hasDefault !== true) return undefined;
+  const expr = defaultValueConverter.convert(
+    specType,
+    String(field.defaultValue),
+  );
+  if (expr === null) return undefined;
+  if (field.isNullable) return expr;
+  return isCsZero(specType, expr) ? undefined : expr;
+};
