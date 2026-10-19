@@ -15,6 +15,6 @@ namespace Backend.Types.View;
 {{/descriptionDoc}}public class {{className}}{{#hasExtends}} : {{&extendsType}}{{/hasExtends}}
 {
 {{#fields}}
-    public {{&csType}} {{ident}} { get; set; }{{#hasInitializer}} = {{&initializer}};{{/hasInitializer}}
+    public {{#required}}required {{/required}}{{&csType}} {{ident}} { get; set; }{{#hasInitializer}} = {{&initializer}};{{/hasInitializer}}
 {{/fields}}
 }

@@ -19,7 +19,9 @@ import {
   withClassParents,
 } from "./common/view-shape.ts";
 import {
+  collectionDefaultExpr,
   convertSpecType,
+  isCsValueType,
   nativeDefaultExpr,
 } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -49,10 +51,13 @@ class Generator extends Emit {
     const { schemaVersion, simpleDoc, descriptionDoc } = this.settings;
     const parent = classParent(table, "datasource", typesByName);
     const fields = declaredFields(table, "datasource", typesByName).map((f) => {
-      const initializer = nativeDefaultExpr(fieldTypeOf(f, typesByName), f);
+      const csType = csTypeFor(f, typesByName);
+      const initializer =
+        collectionDefaultExpr(f) ?? nativeDefaultExpr(fieldTypeOf(f, typesByName), f);
       return {
         ident: this.casing.convertFields(f.name),
-        csType: csTypeFor(f, typesByName),
+        csType,
+        required: !f.isNullable && initializer === undefined && !isCsValueType(csType),
         hasInitializer: initializer !== undefined,
         initializer: initializer ?? "",
       };

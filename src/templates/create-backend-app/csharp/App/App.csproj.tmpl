@@ -6,6 +6,7 @@
     <AssemblyName>{{PROJECT_NAME}}</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <!-- MigrateRunner/ (single-lang) and migrate/ (multi-lang) are sibling projects (see create-migrate-scripts.mjs); both excluded so the app's autoglob doesn't pull in their sources and trip on CS8802 (two top-level Program.cs) plus CS0234/CS0246 for MySqlConnector/Npgsql/Microsoft.Data (those packages are declared in MigrateRunner.csproj, not here). -->
