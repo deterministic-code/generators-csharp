@@ -306,6 +306,68 @@ describe("generate view types", () => {
         - price:
             type: decimal
             default_value: "1.50"
+        - local_now:
+            type: datetime
+            default_value: Now
+        - explicit_at:
+            type: datetime
+            default_value: "DateTime('2026-01-01T00:00:00Z')"
+        - empty_id:
+            type: uuid
+            default_value: Empty
+        - fixed_id:
+            type: uuid
+            default_value: "uuid('11111111-1111-4111-8111-111111111111')"
+        - empty_blob:
+            type: binary
+            default_value: "Hex('')"
+        - initial:
+            type: character
+            default_value: X
+        - ratio:
+            type: float
+            default_value: 1.5
+        - visits:
+            type: unsignedinteger
+            default_value: 1
+        - delta:
+            type: smallinteger
+            default_value: 1
+        - port:
+            type: unsignedsmallinteger
+            default_value: 1
+        - big_rank:
+            type: biginteger
+            default_value: 1
+        - huge:
+            type: unsignedbiginteger
+            default_value: 1
+        - amount:
+            type: number
+            default_value: 1
+        - tags:
+            type: string[]
+            default_value: []
+        - extra:
+            type: string[]
+        - attrs:
+            type: labels{}
+            references: labels.key
+            default_value: {}
+        - aliases:
+            type: string[]
+            is_nullable: true
+            default_value: null
+  - labels:
+      tags: [view_type]
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 64
+        - value:
+            type: string
+            size: 128
 `,
         }),
         settings: {},
@@ -326,5 +388,33 @@ describe("generate view types", () => {
     assert.match(flags, /public bool\? OptedOut \{ get; set; \} = false;/);
     assert.match(flags, /Guid\.NewGuid\(\)\.ToString\(\)/);
     assert.match(flags, /public string Price \{ get; set; \} = "1.50";/);
+    assert.match(flags, /DateTime\.Now/);
+    assert.match(flags, /DateTime\.Parse\("2026-01-01T00:00:00Z"\)/);
+    assert.match(flags, /Guid\.Empty\.ToString\(\)/);
+    assert.match(flags, /"11111111-1111-4111-8111-111111111111"/);
+    assert.match(flags, /new byte\[\] \{  \}/);
+    assert.match(flags, /public string Initial \{ get; set; \} = "X";/);
+    assert.match(flags, /public double Ratio \{ get; set; \} = 1.5;/);
+    assert.match(flags, /public uint Visits \{ get; set; \} = 1;/);
+    assert.match(flags, /public short Delta \{ get; set; \} = 1;/);
+    assert.match(flags, /public ushort Port \{ get; set; \} = 1;/);
+    assert.match(flags, /public long BigRank \{ get; set; \} = 1;/);
+    assert.match(flags, /public ulong Huge \{ get; set; \} = 1;/);
+    assert.match(flags, /public long Amount \{ get; set; \} = 1;/);
+    assert.match(
+      flags,
+      /public List<string> Tags \{ get; set; \} = \[\]/,
+    );
+    assert.match(
+      flags,
+      /public List<string> Extra \{ get; set; \} = \[\]/,
+    );
+    assert.match(
+      flags,
+      /public Dictionary<string, string> Attrs \{ get; set; \} = \[\]/,
+    );
+    assert.match(flags, /public List<string>\? Aliases \{ get; set; \}/);
+    assert.doesNotMatch(flags, /Aliases \{ get; set; \} =/);
+    assert.match(flags, /using System\.Collections\.Generic;/);
   });
 });
