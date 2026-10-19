@@ -10,6 +10,6 @@ namespace Backend.Types.Datasource;
 {{/descriptionDoc}}public class {{className}}{{#hasExtends}} : {{&extendsType}}{{/hasExtends}}
 {
 {{#fields}}
-    public {{csType}} {{ident}} { get; set; }{{#hasInitializer}} = {{&initializer}}{{/hasInitializer}};
+    public {{csType}} {{ident}} { get; set; }{{#hasInitializer}} = {{&initializer}};{{/hasInitializer}}
 {{/fields}}
 }
