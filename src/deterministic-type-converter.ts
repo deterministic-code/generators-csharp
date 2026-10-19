@@ -124,16 +124,56 @@ const isCsZero = (specType: string, expr: string): boolean => {
   return false;
 };
 
+const CS_VALUE_TYPES = new Set([
+  "bool",
+  "byte",
+  "sbyte",
+  "short",
+  "ushort",
+  "int",
+  "uint",
+  "long",
+  "ulong",
+  "float",
+  "double",
+  "decimal",
+  "DateTime",
+  "Guid",
+]);
+
+export const isCsValueType = (csType: string): boolean => {
+  const t = csType.endsWith("?") ? csType.slice(0, -1) : csType;
+  return CS_VALUE_TYPES.has(t.slice(t.lastIndexOf(".") + 1));
+};
+
+export const collectionDefaultExpr = (field: {
+  isArray: boolean;
+  isMap?: boolean;
+  isNullable: boolean;
+  defaultValue?: string | number | boolean | null | readonly [] | object;
+}): string | undefined => {
+  if (!field.isArray && field.isMap !== true) return undefined;
+  if (field.isNullable && field.defaultValue === null) return undefined;
+  return "[]";
+};
+
 /** Native initializer, or `undefined` when absent or the language zero. */
 export const nativeDefaultExpr = (
   specType: string,
   field: {
     hasDefault?: boolean;
-    defaultValue?: string | number | boolean | null;
+    defaultValue?: string | number | boolean | null | readonly [] | object;
     isNullable: boolean;
   },
 ): string | undefined => {
   if (field.hasDefault !== true) return undefined;
+  if (
+    field.defaultValue === null ||
+    Array.isArray(field.defaultValue) ||
+    (typeof field.defaultValue === "object" && field.defaultValue !== null)
+  ) {
+    return undefined;
+  }
   const expr = defaultValueConverter.convert(
     specType,
     String(field.defaultValue),

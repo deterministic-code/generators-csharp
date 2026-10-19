@@ -22,7 +22,9 @@ import {
   type TypeField,
 } from "./specification-parser.ts";
 import {
+  collectionDefaultExpr,
   convertSpecType,
+  isCsValueType,
   nativeDefaultExpr,
 } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -75,13 +77,16 @@ class Generator extends Emit {
     const isUnion = isUnionLike(view);
     const parent = classParent(view, "view", typesByName);
     const fields = declaredFields(view, "view", typesByName).map((f) => {
+      const csType = this.csTypeFor(f, typesByName);
       const initializer =
-        f.kind === "primitive"
+        collectionDefaultExpr(f) ??
+        (f.kind === "primitive"
           ? nativeDefaultExpr(fieldTypeOf(f, typesByName), f)
-          : undefined;
+          : undefined);
       return {
         ident: this.casing.convertFields(f.name),
-        csType: this.csTypeFor(f, typesByName),
+        csType,
+        required: !f.isNullable && initializer === undefined && !isCsValueType(csType),
         hasInitializer: initializer !== undefined,
         initializer: initializer ?? "",
       };
