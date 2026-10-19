@@ -128,6 +128,7 @@ describe("owned dictionary codegen", () => {
     assert.match(settings, /public long SettingId \{ get; set; \}/);
     assert.match(settings, /public string Key \{ get; set; \}/);
     assert.match(settings, /public string Value \{ get; set; \}/);
+    assert.doesNotMatch(settings, /\{ get; set; \};/);
     assert.doesNotMatch(settings, /public long Id /);
     assert.doesNotMatch(settings, /Dictionary</);
     const file = bodyEnding(entries, "File.cs");
@@ -136,6 +137,7 @@ describe("owned dictionary codegen", () => {
     const prefs = bodyEnding(entries, "ContactPreferences.cs");
     assert.match(prefs, /public string Locale \{ get; set; \}/);
     assert.match(prefs, /public string Timezone \{ get; set; \}/);
+    assert.doesNotMatch(prefs, /\{ get; set; \};/);
     assert.doesNotMatch(prefs, /public .* Value /);
   });
 
@@ -147,13 +149,16 @@ describe("owned dictionary codegen", () => {
     const file = bodyEnding(entries, "File.cs");
     assert.match(file, /using System\.Collections\.Generic;/);
     assert.match(file, /public Dictionary<string, string> Settings \{ get; set; \}/);
+    assert.doesNotMatch(file, /\{ get; set; \};/);
     const contact = bodyEnding(entries, "Contact.cs");
     assert.match(
       contact,
       /public Dictionary<string, LocalePreferences> Prefs \{ get; set; \}/,
     );
+    assert.doesNotMatch(contact, /\{ get; set; \};/);
     const card = bodyEnding(entries, "ContactCard.cs");
     assert.match(card, /public Dictionary<string, string> Labels \{ get; set; \}/);
+    assert.doesNotMatch(card, /\{ get; set; \};/);
     const locale = bodyEnding(entries, "LocalePreferences.cs");
     assert.match(locale, /public class LocalePreferences/);
   });

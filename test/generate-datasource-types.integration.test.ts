@@ -107,6 +107,7 @@ describe("generate", () => {
     assert.match(user, /public System.DateTime Updated \{ get; set; \}/);
     assert.match(user, /public string Email \{ get; set; \}/);
     assert.match(user, /public long RoleId \{ get; set; \}/);
+    assert.doesNotMatch(user, /\{ get; set; \};/);
   });
 
   it("extends another datasource type and omits a removed parent field", async () => {
@@ -143,12 +144,14 @@ describe("generate", () => {
     const moderator = body("Moderator.cs");
     assert.match(moderator, /public class Moderator : User\n/);
     assert.match(moderator, /public string Level \{ get; set; \}/);
+    assert.doesNotMatch(moderator, /\{ get; set; \};/);
     assert.doesNotMatch(moderator, /Email/);
     assert.doesNotMatch(moderator, /public long Id/);
     const guest = body("Guest.cs");
     assert.match(guest, /public class Guest\n/);
     assert.match(guest, /public long Id \{ get; set; \}/);
     assert.match(guest, /public string Token \{ get; set; \}/);
+    assert.doesNotMatch(guest, /\{ get; set; \};/);
     assert.doesNotMatch(guest, /Email/);
     assert.doesNotMatch(guest, /: User/);
   });
@@ -189,9 +192,11 @@ describe("generate", () => {
     assert.match(base, /public class Base\n/);
     assert.match(base, /public long Id \{ get; set; \}/);
     assert.match(base, /public string Uuid \{ get; set; \}/);
+    assert.doesNotMatch(base, /\{ get; set; \};/);
     const address = body("AddressBase.cs");
     assert.match(address, /public class AddressBase : Base\n/);
     assert.match(address, /public string Line1 \{ get; set; \}/);
+    assert.doesNotMatch(address, /\{ get; set; \};/);
     assert.doesNotMatch(address, /public long Id/);
     assert.doesNotMatch(address, /public string Uuid/);
   });
@@ -220,6 +225,7 @@ describe("generate", () => {
       requireEntry(byName, "Types/Datasource/Generated/Child.cs"),
     );
     assert.match(child, /public long OwnerId \{ get; set; \}/);
+    assert.doesNotMatch(child, /\{ get; set; \};/);
     assert.doesNotMatch(child, /public string OwnerId/);
   });
 
@@ -276,6 +282,7 @@ describe("generate", () => {
     );
     assert.match(flags, /public bool IsEnabled \{ get; set; \} = true;/);
     assert.match(flags, /public bool IsDisabled \{ get; set; \}/);
+    assert.doesNotMatch(flags, /\{ get; set; \};/);
     assert.doesNotMatch(flags, /IsDisabled \{ get; set; \} =/);
     assert.match(flags, /public long Count \{ get; set; \}/);
     assert.doesNotMatch(flags, /Count \{ get; set; \} =/);
