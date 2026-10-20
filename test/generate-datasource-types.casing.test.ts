@@ -41,7 +41,7 @@ describe("generate datasource types casing", () => {
     );
     const body = files.get("Types/Datasource/Generated/NotificationType.cs")!;
     assert.match(body, /public class NotificationType\n/);
-    assert.match(body, /public required string ChannelName /);
+    assert.match(body, /public string ChannelName /);
   });
 
   it("Pascal file names", async () => {
@@ -71,7 +71,7 @@ describe("generate datasource types casing", () => {
     });
     assert.match(
       files.get("Types/Datasource/Generated/NotificationType.cs")!,
-      /public required string channelName /,
+      /public string channelName /,
     );
   });
 
@@ -81,7 +81,7 @@ describe("generate datasource types casing", () => {
     });
     assert.match(
       files.get("Types/Datasource/Generated/NotificationType.cs")!,
-      /public required string channel_name /,
+      /public string channel_name /,
     );
   });
 

@@ -21,7 +21,6 @@ import {
 import {
   collectionDefaultExpr,
   convertSpecType,
-  isCsValueType,
   nativeDefaultExpr,
 } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -57,7 +56,6 @@ class Generator extends Emit {
       return {
         ident: this.casing.convertFields(f.name),
         csType,
-        required: !f.isNullable && initializer === undefined && !isCsValueType(csType),
         hasInitializer: initializer !== undefined,
         initializer: initializer ?? "",
       };

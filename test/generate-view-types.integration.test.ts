@@ -113,7 +113,7 @@ describe("generate view types", () => {
     const card = await bodyOf("CardPayment.cs");
     assert.match(card, /namespace Backend\.Types\.View;/);
     assert.match(card, /public class CardPayment/);
-    assert.match(card, /public required string Amount \{ get; set; \}/);
+    assert.match(card, /public string Amount \{ get; set; \}/);
     assert.match(
       card,
       /public List<Backend\.Types\.Datasource\.Tag> Tags \{ get; set; \} = \[\]/,
@@ -123,19 +123,19 @@ describe("generate view types", () => {
     assert.match(card, /using System\.Collections\.Generic;/);
     const payment = await bodyOf("Payment.cs");
     assert.match(payment, /public class Payment\n/);
-    assert.match(payment, /public required string Amount \{ get; set; \}/);
+    assert.match(payment, /public string Amount \{ get; set; \}/);
     assert.match(
       payment,
       /public List<Backend\.Types\.Datasource\.Tag> Tags \{ get; set; \} = \[\]/,
     );
     assert.match(payment, /public string\? Note \{ get; set; \}/);
-    assert.match(payment, /public required string Tendered \{ get; set; \}/);
+    assert.match(payment, /public string Tendered \{ get; set; \}/);
     assert.doesNotMatch(payment, /\{ get; set; \};/);
     const summary = await bodyOf("UserSummary.cs");
     assert.match(summary, /public class UserSummary/);
     assert.doesNotMatch(summary, /: Backend\.Types\.Datasource\.User/);
-    assert.match(summary, /public required string DisplayName \{ get; set; \}/);
-    assert.match(summary, /public required string Email \{ get; set; \}/);
+    assert.match(summary, /public string DisplayName \{ get; set; \}/);
+    assert.match(summary, /public string Email \{ get; set; \}/);
     assert.doesNotMatch(summary, /\{ get; set; \};/);
     assert.doesNotMatch(summary, /NickName/);
     assert.doesNotMatch(summary, /RoleId/);
@@ -198,7 +198,7 @@ describe("generate view types", () => {
     };
     const profile = body("Profile.cs");
     assert.match(profile, /public class Profile : User\n/);
-    assert.match(profile, /public required string Title \{ get; set; \}/);
+    assert.match(profile, /public string Title \{ get; set; \}/);
     assert.doesNotMatch(profile, /\{ get; set; \};/);
     assert.doesNotMatch(profile, /Email/);
     const label = body("Label.cs");
@@ -206,13 +206,13 @@ describe("generate view types", () => {
       label,
       /public class Label : Backend\.Types\.Datasource\.Tag\n/,
     );
-    assert.match(label, /public required string Caption \{ get; set; \}/);
+    assert.match(label, /public string Caption \{ get; set; \}/);
     assert.doesNotMatch(label, /\{ get; set; \};/);
     assert.doesNotMatch(label, /public long Id/);
     const paid = body("Paid.cs");
     assert.match(paid, /public class Paid\n/);
-    assert.match(paid, /public required string Amount \{ get; set; \}/);
-    assert.match(paid, /public required string Tendered \{ get; set; \}/);
+    assert.match(paid, /public string Amount \{ get; set; \}/);
+    assert.match(paid, /public string Tendered \{ get; set; \}/);
     assert.doesNotMatch(paid, /\{ get; set; \};/);
     assert.doesNotMatch(paid, /Note/);
   });
@@ -259,7 +259,7 @@ describe("generate view types", () => {
     assert.doesNotMatch(base, /\{ get; set; \};/);
     const address = body("Address.cs");
     assert.match(address, /public class Address : Base\n/);
-    assert.match(address, /public required string Line1 \{ get; set; \}/);
+    assert.match(address, /public string Line1 \{ get; set; \}/);
     assert.doesNotMatch(address, /\{ get; set; \};/);
     assert.doesNotMatch(address, /public long Id/);
   });
