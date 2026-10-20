@@ -24,6 +24,7 @@ import {
 import {
   collectionDefaultExpr,
   convertSpecType,
+  csLanguageDefault,
   nativeDefaultExpr,
 } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -81,7 +82,8 @@ class Generator extends Emit {
         collectionDefaultExpr(f) ??
         (f.kind === "primitive"
           ? nativeDefaultExpr(fieldTypeOf(f, typesByName), f)
-          : undefined);
+          : undefined) ??
+        csLanguageDefault(csType);
       return {
         ident: this.casing.convertFields(f.name),
         csType,

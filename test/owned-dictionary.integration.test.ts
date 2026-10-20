@@ -126,8 +126,8 @@ describe("owned dictionary codegen", () => {
     const settings = bodyEnding(entries, "Settings.cs");
     assert.match(settings, /public class Settings/);
     assert.match(settings, /public long SettingId \{ get; set; \}/);
-    assert.match(settings, /public string Key \{ get; set; \}/);
-    assert.match(settings, /public string Value \{ get; set; \}/);
+    assert.match(settings, /public string Key \{ get; set; \} = "";/);
+    assert.match(settings, /public string Value \{ get; set; \} = "";/);
     assert.doesNotMatch(settings, /\{ get; set; \};/);
     assert.doesNotMatch(settings, /public long Id /);
     assert.doesNotMatch(settings, /Dictionary</);
@@ -135,8 +135,8 @@ describe("owned dictionary codegen", () => {
     assert.doesNotMatch(file, /Settings/);
     assert.doesNotMatch(file, /Dictionary</);
     const prefs = bodyEnding(entries, "ContactPreferences.cs");
-    assert.match(prefs, /public string Locale \{ get; set; \}/);
-    assert.match(prefs, /public string Timezone \{ get; set; \}/);
+    assert.match(prefs, /public string Locale \{ get; set; \} = "";/);
+    assert.match(prefs, /public string Timezone \{ get; set; \} = "";/);
     assert.doesNotMatch(prefs, /\{ get; set; \};/);
     assert.doesNotMatch(prefs, /public .* Value /);
   });

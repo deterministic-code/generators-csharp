@@ -146,6 +146,14 @@ export const isCsValueType = (csType: string): boolean => {
   return CS_VALUE_TYPES.has(t.slice(t.lastIndexOf(".") + 1));
 };
 
+/** Language zero for a non-nullable reference type. Value types stay uninitialized. */
+export const csLanguageDefault = (csType: string): string | undefined => {
+  if (csType.endsWith("?") || isCsValueType(csType)) return undefined;
+  if (csType === "string") return '""';
+  if (csType === "byte[]") return "[]";
+  return "default!";
+};
+
 export const collectionDefaultExpr = (field: {
   isArray: boolean;
   isMap?: boolean;

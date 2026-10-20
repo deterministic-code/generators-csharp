@@ -21,6 +21,7 @@ import {
 import {
   collectionDefaultExpr,
   convertSpecType,
+  csLanguageDefault,
   nativeDefaultExpr,
 } from "./deterministic-type-converter.ts";
 import { Emit } from "./emit.ts";
@@ -52,7 +53,9 @@ class Generator extends Emit {
     const fields = declaredFields(table, "datasource", typesByName).map((f) => {
       const csType = csTypeFor(f, typesByName);
       const initializer =
-        collectionDefaultExpr(f) ?? nativeDefaultExpr(fieldTypeOf(f, typesByName), f);
+        collectionDefaultExpr(f) ??
+        nativeDefaultExpr(fieldTypeOf(f, typesByName), f) ??
+        csLanguageDefault(csType);
       return {
         ident: this.casing.convertFields(f.name),
         csType,
