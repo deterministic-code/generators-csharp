@@ -136,6 +136,17 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
       snake.datasource("notification_type"),
       "Types/Datasource/Generated/notification_type.cs",
     );
+    const kebabDirs = createImportGenerator(".", {
+      "languages.csharp.casing.directories": "Kebab",
+    });
+    assert.equal(
+      kebabDirs.datasource("user"),
+      "types/datasource/generated/User.cs",
+    );
+    assert.equal(
+      kebabDirs.view("user"),
+      "types/view/generated/User.cs",
+    );
   });
 
   it("cases type quals from settings independently of files", () => {
@@ -173,11 +184,11 @@ describe("CsharpImportGenerator by-feature", () => {
     });
     assert.equal(
       imports.datasource("notification_type"),
-      "Features/notification-type/NotificationType.cs",
+      "features/notification-type/NotificationType.cs",
     );
     assert.equal(
       imports.datasourceRel("notification_type"),
-      "Features/notification-type/NotificationType.cs",
+      "features/notification-type/NotificationType.cs",
     );
     assert.equal(imports.view("user"), "User.cs");
     assert.equal(imports.viewRel("user"), "User.cs");
@@ -200,31 +211,31 @@ describe("CsharpImportGenerator by-feature", () => {
     });
     assert.equal(
       imports.serviceCustom("user"),
-      "Features/user/custom/User.cs",
+      "features/user/custom/User.cs",
     );
     assert.equal(
       imports.serviceCustom("create_card_payment"),
-      "Features/card-payment/custom/CreateCardPayment.cs",
+      "features/card-payment/custom/CreateCardPayment.cs",
     );
     assert.equal(
       imports.serviceCustom("update_card_payment"),
-      "Features/card-payment/custom/UpdateCardPayment.cs",
+      "features/card-payment/custom/UpdateCardPayment.cs",
     );
     assert.equal(
       imports.serviceCustomRel("notification_type"),
-      "Features/notification-type/custom/NotificationType.cs",
+      "features/notification-type/custom/NotificationType.cs",
     );
     assert.equal(
       imports.routeCustom("get_health"),
-      "Features/get-health/custom/GetHealthRoute.cs",
+      "features/get-health/custom/GetHealthRoute.cs",
     );
     assert.equal(
       imports.routeCustom("create_card_payment"),
-      "Features/card-payment/custom/CreateCardPaymentRoute.cs",
+      "features/card-payment/custom/CreateCardPaymentRoute.cs",
     );
     assert.equal(
       imports.serviceCustom("user", "./ignored/module"),
-      "Features/user/custom/User.cs",
+      "features/user/custom/User.cs",
     );
   });
 
@@ -235,11 +246,11 @@ describe("CsharpImportGenerator by-feature", () => {
     });
     assert.equal(
       imports.datasource("notification_type"),
-      "Features/notification_type/NotificationType.cs",
+      "features/notification_type/NotificationType.cs",
     );
     assert.equal(
       imports.serviceCustomRel("notification_type"),
-      "Features/notification_type/custom/NotificationType.cs",
+      "features/notification_type/custom/NotificationType.cs",
     );
   });
 });
