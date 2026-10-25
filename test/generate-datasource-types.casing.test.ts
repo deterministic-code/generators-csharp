@@ -95,6 +95,13 @@ describe("generate datasource types casing", () => {
     );
   });
 
+  it("Kebab directories rename layered prefixes", async () => {
+    const files = await byFilename({
+      "languages.csharp.casing.directories": "Kebab",
+    });
+    assert.ok(files.has("types/datasource/generated/NotificationType.cs"));
+  });
+
   it("Kebab directories with Pascal files under by-feature", async () => {
     const files = await byFilename({
       "other.organize_by_feature": "true",
@@ -102,7 +109,7 @@ describe("generate datasource types casing", () => {
       "languages.csharp.casing.directories": "Kebab",
     });
     assert.ok(
-      files.has("Features/notification-type/NotificationType.cs"),
+      files.has("features/notification-type/NotificationType.cs"),
     );
   });
 });

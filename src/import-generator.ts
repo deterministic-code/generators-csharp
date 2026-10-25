@@ -15,11 +15,6 @@ const pluralSnake = (entity: string): string => {
   return parts.join("_");
 };
 
-const DATASOURCE_DIR = "Types/Datasource/Generated";
-const VIEW_DIR = "Types/View/Generated";
-const DATASOURCE_VALIDATOR_DIR = `${DATASOURCE_DIR}/Validators`;
-const VIEW_VALIDATOR_DIR = `${VIEW_DIR}/Validators`;
-
 export class CsharpImportGenerator implements IImportGenerator {
   private readonly organizeByFeature: boolean;
   private readonly flat: boolean;
@@ -35,7 +30,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   datasource(entity: string): string {
-    return this.underBase(this.rel(DATASOURCE_DIR, this.casedFile(entity)));
+    return this.underBase(this.rel(this.layered("types/datasource/generated"), this.casedFile(entity)));
   }
 
   datasourceRel(entity: string): string {
@@ -49,7 +44,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   datasourceValidator(entity: string): string {
     return this.underBase(
       this.rel(
-        DATASOURCE_VALIDATOR_DIR,
+        this.layered("types/datasource/generated/validators"),
         this.csFile(`datasource_${entity}_validator`),
       ),
     );
@@ -60,7 +55,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   view(entity: string): string {
-    return this.underBase(this.rel(VIEW_DIR, this.csFile(entity)));
+    return this.underBase(this.rel(this.layered("types/view/generated"), this.csFile(entity)));
   }
 
   viewRel(entity: string): string {
@@ -73,7 +68,7 @@ export class CsharpImportGenerator implements IImportGenerator {
 
   viewValidator(entity: string): string {
     return this.underBase(
-      this.rel(VIEW_VALIDATOR_DIR, this.csFile(`${entity}_validator`)),
+      this.rel(this.layered("types/view/generated/validators"), this.csFile(`${entity}_validator`)),
     );
   }
 
@@ -93,7 +88,7 @@ export class CsharpImportGenerator implements IImportGenerator {
     const file = this.csFile(name);
     return this.underBase(
       this.organizeByFeature
-        ? `Features/${this.casing.directory(featureEntity(name))}/custom/${file}`
+        ? `${this.featuresDir(featureEntity(name))}/custom/${file}`
         : `../custom/${file}`,
     );
   }
@@ -101,7 +96,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   serviceCustomRel(entity: string): string {
     const file = this.csFile(entity);
     return this.organizeByFeature
-      ? `Features/${this.casing.directory(entity)}/custom/${file}`
+      ? `${this.featuresDir(entity)}/custom/${file}`
       : `../custom/${file}`;
   }
 
@@ -137,7 +132,7 @@ export class CsharpImportGenerator implements IImportGenerator {
     const file = this.csFile(`${name}_route`);
     return this.underBase(
       this.organizeByFeature
-        ? `Features/${this.casing.directory(featureEntity(name))}/custom/${file}`
+        ? `${this.featuresDir(featureEntity(name))}/custom/${file}`
         : `../custom/${file}`,
     );
   }
@@ -205,8 +200,21 @@ export class CsharpImportGenerator implements IImportGenerator {
   private casedFile(entity: string): string {
     const file = this.csFile(entity);
     return this.organizeByFeature
-      ? `Features/${this.casing.directory(entity)}/${file}`
+      ? `${this.featuresDir(entity)}/${file}`
       : file;
+  }
+
+  private layered(path: string): string {
+    return path
+      .split("/")
+      .map((segment) =>
+        segment === "custom" ? segment : this.casing.convertDirectories(segment),
+      )
+      .join("/");
+  }
+
+  private featuresDir(entity: string): string {
+    return `${this.casing.convertDirectories("features")}/${this.casing.directory(entity)}`;
   }
 
   private rel(prefix: string, file: string): string {
