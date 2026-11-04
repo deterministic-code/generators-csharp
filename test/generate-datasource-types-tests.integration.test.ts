@@ -105,8 +105,8 @@ describe("generate datasource types tests", () => {
     assert.deepEqual(
       [...byName.keys()].sort(),
       [
-        "Types/Datasource/Generated/RoleTests.cs",
-        "Types/Datasource/Generated/UserTests.cs",
+        "Types/Datasource/RoleTests.cs",
+        "Types/Datasource/UserTests.cs",
       ],
     );
   });

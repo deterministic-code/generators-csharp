@@ -82,8 +82,8 @@ describe("generate", () => {
     assert.deepEqual(
       [...byName.keys()].sort(),
       [
-        "Types/Datasource/Generated/Role.cs",
-        "Types/Datasource/Generated/User.cs",
+        "Types/Datasource/Role.cs",
+        "Types/Datasource/User.cs",
       ],
     );
   });
@@ -96,7 +96,7 @@ describe("generate", () => {
       }),
     );
     const user = entryBody(
-      requireEntry(byName, "Types/Datasource/Generated/User.cs"),
+      requireEntry(byName, "Types/Datasource/User.cs"),
     );
     assert.match(user, /schema-version: 1\.0/);
     assert.match(user, /namespace Backend\.Types\.Datasource;/);
@@ -140,7 +140,7 @@ describe("generate", () => {
       }),
     );
     const body = (filename: string) =>
-      entryBody(requireEntry(map, `Types/Datasource/Generated/${filename}`));
+      entryBody(requireEntry(map, `Types/Datasource/${filename}`));
     const moderator = body("Moderator.cs");
     assert.match(moderator, /public class Moderator : User\n/);
     assert.match(moderator, /public string Level \{ get; set; \} = "";/);
@@ -185,9 +185,9 @@ describe("generate", () => {
         settings: { application_name: "catalog-api" },
       }),
     );
-    assert.ok(map.has("Types/Datasource/Generated/Base.cs"));
+    assert.ok(map.has("Types/Datasource/Base.cs"));
     const body = (filename: string) =>
-      entryBody(requireEntry(map, `Types/Datasource/Generated/${filename}`));
+      entryBody(requireEntry(map, `Types/Datasource/${filename}`));
     const base = body("Base.cs");
     assert.match(base, /public class Base\n/);
     assert.match(base, /public long Id \{ get; set; \}/);
@@ -222,7 +222,7 @@ describe("generate", () => {
       }),
     );
     const child = entryBody(
-      requireEntry(byName, "Types/Datasource/Generated/Child.cs"),
+      requireEntry(byName, "Types/Datasource/Child.cs"),
     );
     assert.match(child, /public long OwnerId \{ get; set; \}/);
     assert.doesNotMatch(child, /\{ get; set; \};/);
@@ -317,7 +317,7 @@ describe("generate", () => {
       }),
     );
     const flags = entryBody(
-      requireEntry(byName, "Types/Datasource/Generated/Flags.cs"),
+      requireEntry(byName, "Types/Datasource/Flags.cs"),
     );
     assert.match(flags, /public bool IsEnabled \{ get; set; \} = true;/);
     assert.match(flags, /public bool IsDisabled \{ get; set; \}/);

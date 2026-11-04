@@ -1,5 +1,6 @@
 import pluralize from "pluralize";
 import type { IImportGenerator } from "@deterministic-code/generators-common/import-generator";
+import { Paths, type TypeKind } from "@deterministic-code/generators-common/paths";
 import { createCasing, type PackCasing } from "./common/default-casing.ts";
 
 const VARIANT_PREFIXES = ["update_", "create_"] as const;
@@ -20,6 +21,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   private readonly flat: boolean;
   private readonly basePath: string;
   private readonly casing: PackCasing;
+  private readonly paths = new Paths();
 
   constructor(basePath: string, settings: Record<string, string>) {
     this.basePath = basePath;
@@ -30,7 +32,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   datasource(entity: string): string {
-    return this.underBase(this.rel(this.layered("types/datasource/generated"), this.casedFile(entity)));
+    return this.underBase(this.rel(this.typesLayer("datasource"), this.casedFile(entity)));
   }
 
   datasourceRel(entity: string): string {
@@ -44,7 +46,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   datasourceValidator(entity: string): string {
     return this.underBase(
       this.rel(
-        this.layered("types/datasource/generated/validators"),
+        this.typesLayer("datasource", "validators"),
         this.csFile(`datasource_${entity}_validator`),
       ),
     );
@@ -55,7 +57,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   view(entity: string): string {
-    return this.underBase(this.rel(this.layered("types/view/generated"), this.csFile(entity)));
+    return this.underBase(this.rel(this.typesLayer("view"), this.csFile(entity)));
   }
 
   viewRel(entity: string): string {
@@ -68,7 +70,7 @@ export class CsharpImportGenerator implements IImportGenerator {
 
   viewValidator(entity: string): string {
     return this.underBase(
-      this.rel(this.layered("types/view/generated/validators"), this.csFile(`${entity}_validator`)),
+      this.rel(this.typesLayer("view", "validators"), this.csFile(`${entity}_validator`)),
     );
   }
 
@@ -202,6 +204,12 @@ export class CsharpImportGenerator implements IImportGenerator {
     return this.organizeByFeature
       ? `${this.featuresDir(entity)}/${file}`
       : file;
+  }
+
+  private typesLayer(kind: TypeKind, extra?: string): string {
+    const dir =
+      extra === undefined ? this.paths.typesDir(kind) : `${this.paths.typesDir(kind)}/${extra}`;
+    return this.layered(dir);
   }
 
   private layered(path: string): string {
