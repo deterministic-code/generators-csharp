@@ -75,7 +75,7 @@ class Generator extends Emit {
   }
 
   private view(view: Type, typesByName: Map<string, Type>): GenerateEntry {
-    const className = this.casing.convertTypes(view.name);
+    const className = this.casing.entityName(view.name);
     const validatorClass = this.viewValidator(view.name);
     const parent = classParent(view, "view", typesByName);
     const include =

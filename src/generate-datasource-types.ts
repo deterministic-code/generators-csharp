@@ -63,7 +63,7 @@ class Generator extends Emit {
         initializer: initializer ?? "",
       };
     });
-    const className = this.casing.convertTypes(table.name);
+    const className = this.casing.entityName(table.name);
     return content(
       this.imports.datasource(table.name),
       fill(typeTmpl, {
@@ -75,7 +75,7 @@ class Generator extends Emit {
         fieldCount: String(fields.length),
         hasExtends: parent !== undefined,
         extendsType:
-          parent === undefined ? "" : this.casing.convertTypes(parent.name),
+          parent === undefined ? "" : this.casing.entityName(parent.name),
         fields,
       }),
     );

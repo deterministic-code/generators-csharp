@@ -123,8 +123,8 @@ const hasEnding = (map: Map<string, GenerateEntry>, suffix: string): boolean =>
 describe("owned dictionary codegen", () => {
   it("emits Settings as a row-shaped datasource type", async () => {
     const entries = indexEntries(await generateDatasourceTypes(ctx));
-    const settings = bodyEnding(entries, "Settings.cs");
-    assert.match(settings, /public class Settings/);
+    const settings = bodyEnding(entries, "Setting.cs");
+    assert.match(settings, /public class Setting/);
     assert.match(settings, /public long SettingId \{ get; set; \}/);
     assert.match(settings, /public string Key \{ get; set; \} = "";/);
     assert.match(settings, /public string Value \{ get; set; \} = "";/);
@@ -134,7 +134,7 @@ describe("owned dictionary codegen", () => {
     const file = bodyEnding(entries, "File.cs");
     assert.doesNotMatch(file, /Settings/);
     assert.doesNotMatch(file, /Dictionary</);
-    const prefs = bodyEnding(entries, "ContactPreferences.cs");
+    const prefs = bodyEnding(entries, "ContactPreference.cs");
     assert.match(prefs, /public string Locale \{ get; set; \} = "";/);
     assert.match(prefs, /public string Timezone \{ get; set; \} = "";/);
     assert.doesNotMatch(prefs, /\{ get; set; \};/);
@@ -153,13 +153,13 @@ describe("owned dictionary codegen", () => {
     const contact = bodyEnding(entries, "Contact.cs");
     assert.match(
       contact,
-      /public Dictionary<string, LocalePreferences> Prefs \{ get; set; \} = \[\]/,
+      /public Dictionary<string, LocalePreference> Prefs \{ get; set; \} = \[\]/,
     );
     assert.doesNotMatch(contact, /\{ get; set; \};/);
     const card = bodyEnding(entries, "ContactCard.cs");
     assert.match(card, /public Dictionary<string, string> Labels \{ get; set; \} = \[\]/);
     assert.doesNotMatch(card, /\{ get; set; \};/);
-    const locale = bodyEnding(entries, "LocalePreferences.cs");
-    assert.match(locale, /public class LocalePreferences/);
+    const locale = bodyEnding(entries, "LocalePreference.cs");
+    assert.match(locale, /public class LocalePreference/);
   });
 });

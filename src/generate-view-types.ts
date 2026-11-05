@@ -46,7 +46,7 @@ class Generator extends Emit {
     if (field.kind === "primitive") return convertSpecType(field.base);
     const nested = typesByName.get(field.base);
     return nested !== undefined && typeHasTag(nested, "view_type")
-      ? this.casing.convertTypes(field.base)
+      ? this.casing.entityName(field.base)
       : this.imports.datasourceQual(field.base);
   }
 
@@ -65,7 +65,7 @@ class Generator extends Emit {
 
   private extendsType(parent: { name: string; lane: "view" | "datasource" }): string {
     return parent.lane === "view"
-      ? this.casing.convertTypes(parent.name)
+      ? this.casing.entityName(parent.name)
       : this.imports.datasourceQual(parent.name);
   }
 
@@ -73,7 +73,7 @@ class Generator extends Emit {
     view: Type,
     typesByName: Map<string, Type>,
   ): GenerateEntry {
-    const className = this.casing.convertTypes(view.name);
+    const className = this.casing.entityName(view.name);
     const isUnion = isUnionLike(view);
     const parent = classParent(view, "view", typesByName);
     const fields = declaredFields(view, "view", typesByName).map((f) => {

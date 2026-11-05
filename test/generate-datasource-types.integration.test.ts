@@ -317,7 +317,7 @@ describe("generate", () => {
       }),
     );
     const flags = entryBody(
-      requireEntry(byName, "Types/Datasource/Flags.cs"),
+      requireEntry(byName, "Types/Datasource/Flag.cs"),
     );
     assert.match(flags, /public bool IsEnabled \{ get; set; \} = true;/);
     assert.match(flags, /public bool IsDisabled \{ get; set; \}/);

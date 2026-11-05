@@ -373,8 +373,8 @@ describe("generate view types", () => {
         settings: {},
       }),
     );
-    const file = [...map.keys()].find((name) => name.endsWith("Flags.cs"));
-    assert.ok(file, "missing Flags.cs generate entry");
+    const file = [...map.keys()].find((name) => name.endsWith("Flag.cs"));
+    assert.ok(file, "missing Flag.cs generate entry");
     const flags = entryBody(requireEntry(map, file));
     assert.match(flags, /public bool IsEnabled \{ get; set; \} = true;/);
     assert.doesNotMatch(flags, /\{ get; set; \};/);

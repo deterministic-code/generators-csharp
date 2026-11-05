@@ -182,7 +182,7 @@ class Generator extends Emit {
   }
 
   private validator(table: Type, typesByName: Map<string, Type>): GenerateEntry {
-    const className = this.casing.convertTypes(table.name);
+    const className = this.casing.entityName(table.name);
     const convertFields = (name: string): string =>
       this.casing.convertFields(name);
     const parent = classParent(table, "datasource", typesByName);
