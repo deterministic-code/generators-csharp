@@ -14,10 +14,10 @@ const flat = (basePath: string, extra: Record<string, string> = {}) =>
 describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
   it("emits Pascal files and Pascal type quals", () => {
     const imports = layered();
-    assert.equal(imports.datasource("user"), "Types/Datasource/Generated/User.cs");
+    assert.equal(imports.datasource("user"), "Types/Datasource/User.cs");
     assert.equal(
       imports.datasourceRel("user"),
-      "Types/Datasource/Generated/User.cs",
+      "Types/Datasource/User.cs",
     );
     assert.equal(
       imports.datasourceQual("user"),
@@ -25,28 +25,28 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
     );
     assert.equal(
       imports.datasourceValidator("user"),
-      "Types/Datasource/Generated/Validators/DatasourceUserValidator.cs",
+      "Types/Datasource/Validators/DatasourceUserValidator.cs",
     );
     assert.equal(
       imports.datasourceValidatorRel("user"),
-      "Types/Datasource/Generated/Validators/DatasourceUserValidator.cs",
+      "Types/Datasource/Validators/DatasourceUserValidator.cs",
     );
     assert.equal(
       imports.view("card_payment"),
-      "Types/View/Generated/CardPayment.cs",
+      "Types/View/CardPayment.cs",
     );
     assert.equal(
       imports.viewRel("card_payment"),
-      "Types/View/Generated/CardPayment.cs",
+      "Types/View/CardPayment.cs",
     );
     assert.equal(imports.viewQual("card_payment"), "Backend.Types.View.CardPayment");
     assert.equal(
       imports.viewValidator("user"),
-      "Types/View/Generated/Validators/UserValidator.cs",
+      "Types/View/Validators/UserValidator.cs",
     );
     assert.equal(
       imports.viewValidatorRel("user"),
-      "Types/View/Generated/Validators/UserValidator.cs",
+      "Types/View/Validators/UserValidator.cs",
     );
     assert.equal(imports.service("user"), "UserService.cs");
     assert.equal(imports.serviceRel("user"), "UserService.cs");
@@ -80,11 +80,11 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
     assert.equal(imports.test("User.cs", "user"), "UserTests.cs");
     assert.equal(
       imports.test(imports.datasource("user"), "user"),
-      "Types/Datasource/Generated/UserTests.cs",
+      "Types/Datasource/UserTests.cs",
     );
     assert.equal(
       imports.test(imports.viewValidator("user"), "user"),
-      "Types/View/Generated/Validators/UserValidatorTests.cs",
+      "Types/View/Validators/UserValidatorTests.cs",
     );
     assert.equal(
       imports.test("UserValidator.cs", "user"),
@@ -107,11 +107,11 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
   it("cases file names from settings for every lane", () => {
     assert.equal(
       layered().datasource("notification_type"),
-      "Types/Datasource/Generated/NotificationType.cs",
+      "Types/Datasource/NotificationType.cs",
     );
     assert.equal(
       layered().view("notification_type"),
-      "Types/View/Generated/NotificationType.cs",
+      "Types/View/NotificationType.cs",
     );
     assert.equal(
       layered().service("notification_type"),
@@ -122,11 +122,11 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
     });
     assert.equal(
       pascal.datasource("notification_type"),
-      "Types/Datasource/Generated/NotificationType.cs",
+      "Types/Datasource/NotificationType.cs",
     );
     assert.equal(
       pascal.view("notification_type"),
-      "Types/View/Generated/NotificationType.cs",
+      "Types/View/NotificationType.cs",
     );
     assert.equal(pascal.service("notification_type"), "NotificationTypeService.cs");
     const snake = createImportGenerator(".", {
@@ -134,18 +134,18 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
     });
     assert.equal(
       snake.datasource("notification_type"),
-      "Types/Datasource/Generated/notification_type.cs",
+      "Types/Datasource/notification_type.cs",
     );
     const kebabDirs = createImportGenerator(".", {
       "languages.csharp.casing.directories": "Kebab",
     });
     assert.equal(
       kebabDirs.datasource("user"),
-      "types/datasource/generated/User.cs",
+      "types/datasource/User.cs",
     );
     assert.equal(
       kebabDirs.view("user"),
-      "types/view/generated/User.cs",
+      "types/view/User.cs",
     );
   });
 
@@ -153,7 +153,7 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
     const snakeTypes = createImportGenerator(".", {
       "languages.csharp.casing.types": "Snake",
     });
-    assert.equal(snakeTypes.view("user"), "Types/View/Generated/User.cs");
+    assert.equal(snakeTypes.view("user"), "Types/View/User.cs");
     assert.equal(
       snakeTypes.datasourceQual("notification_type"),
       "Backend.Types.Datasource.notification_type",
@@ -168,7 +168,7 @@ describe("CsharpImportGenerator layered (organize_by_feature unset)", () => {
       });
       assert.equal(
         imports.datasource("user"),
-        "Types/Datasource/Generated/User.cs",
+        "Types/Datasource/User.cs",
         value,
       );
       assert.equal(imports.serviceCustom("ReportService"), "../custom/ReportService.cs", value);
