@@ -251,7 +251,7 @@ class Generator extends Emit {
       this.imports.test(this.imports.viewValidator(view.name), view.name),
       fill(typeTestTmpl, {
         schemaVersion: this.settings.schemaVersion,
-        className: this.casing.convertTypes(view.name),
+        className: this.casing.entityName(view.name),
         testClassName: this.casing.validatorTestClassName(view.name),
         validatorClass: this.casing.convertTypes(`${view.name}_validator`),
         isUnion: false,

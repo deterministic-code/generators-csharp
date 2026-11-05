@@ -1,20 +1,17 @@
-import pluralize from "pluralize";
 import type { IImportGenerator } from "@deterministic-code/generators-common/import-generator";
 import { Paths, type TypeKind } from "@deterministic-code/generators-common/paths";
+import { Pluralizer } from "@deterministic-code/generators-common/pluralizer";
 import { createCasing, type PackCasing } from "./common/default-casing.ts";
 
 const VARIANT_PREFIXES = ["update_", "create_"] as const;
+const pluralizer = new Pluralizer();
 
 const featureEntity = (entity: string): string => {
   const prefix = VARIANT_PREFIXES.find((p) => entity.startsWith(p));
   return prefix === undefined ? entity : entity.slice(prefix.length);
 };
 
-const pluralSnake = (entity: string): string => {
-  const parts = entity.split(/[_-]/);
-  parts[parts.length - 1] = pluralize.plural(parts[parts.length - 1]!);
-  return parts.join("_");
-};
+const pluralSnake = (entity: string): string => pluralizer.plural(entity.replace(/-/g, "_"));
 
 export class CsharpImportGenerator implements IImportGenerator {
   private readonly organizeByFeature: boolean;
@@ -40,7 +37,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   datasourceQual(entity: string): string {
-    return `Backend.Types.Datasource.${this.casing.convertTypes(entity)}`;
+    return `Backend.Types.Datasource.${this.casing.entityName(entity)}`;
   }
 
   datasourceValidator(entity: string): string {
@@ -57,7 +54,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   view(entity: string): string {
-    return this.underBase(this.rel(this.typesLayer("view"), this.csFile(entity)));
+    return this.underBase(this.rel(this.typesLayer("view"), this.typeFile(entity)));
   }
 
   viewRel(entity: string): string {
@@ -65,7 +62,7 @@ export class CsharpImportGenerator implements IImportGenerator {
   }
 
   viewQual(entity: string): string {
-    return `Backend.Types.View.${this.casing.convertTypes(entity)}`;
+    return `Backend.Types.View.${this.casing.entityName(entity)}`;
   }
 
   viewValidator(entity: string): string {
@@ -199,8 +196,12 @@ export class CsharpImportGenerator implements IImportGenerator {
     return `${this.casing.fileBase(stem)}.cs`;
   }
 
+  private typeFile(entity: string): string {
+    return this.csFile(this.paths.typeStem(entity));
+  }
+
   private casedFile(entity: string): string {
-    const file = this.csFile(entity);
+    const file = this.typeFile(entity);
     return this.organizeByFeature
       ? `${this.featuresDir(entity)}/${file}`
       : file;

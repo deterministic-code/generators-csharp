@@ -125,7 +125,7 @@ class Generator extends Emit {
       this.imports.test(this.imports.datasource(table.name), table.name),
       fill(typeTestTmpl, {
         schemaVersion: this.settings.schemaVersion,
-        className: this.casing.convertTypes(table.name),
+        className: this.casing.entityName(table.name),
         testClassName: this.casing.testClassName(table.name),
         fields,
       }),

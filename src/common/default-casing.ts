@@ -2,6 +2,7 @@ import {
   createCasingStrategy,
   type ICasingStrategy,
 } from "@deterministic-code/generators-common/casing-strategy";
+import { Paths } from "@deterministic-code/generators-common/paths";
 
 export const GENERATOR_LANGUAGE = "csharp";
 
@@ -13,6 +14,7 @@ const featureEntity = (entity: string): string => {
 };
 
 export type PackCasing = ICasingStrategy & {
+  entityName: (specName: string) => string
   fileBase: (stem: string) => string
   directory: (entity: string) => string
   filePath: (stem: string) => string
@@ -37,7 +39,9 @@ export const createCasing = (
   settings: Record<string, string>,
 ): PackCasing => {
   const casing = createCasingStrategy(GENERATOR_LANGUAGE, settings);
+  const paths = new Paths();
   const fileBase = (stem: string): string => casing.convertFileName(stem);
+  const entityName = (specName: string): string => casing.convertTypes(paths.typeStem(specName));
   const directory = (entity: string): string =>
     casing.convertDirectories(featureEntity(entity));
   const filePath = (stem: string): string => `${fileBase(stem)}.cs`;
@@ -46,6 +50,7 @@ export const createCasing = (
     convertTypes: (text: string) => casing.convertTypes(text),
     convertFields: (text: string) => casing.convertFields(text),
     convertDirectories: (text: string) => casing.convertDirectories(text),
+    entityName,
     fileBase,
     directory,
     filePath,

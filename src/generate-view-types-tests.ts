@@ -165,7 +165,7 @@ class Generator extends Emit {
       this.imports.test(this.imports.view(view.name), view.name),
       fill(typeTestTmpl, {
         schemaVersion: this.settings.schemaVersion,
-        className: this.casing.convertTypes(view.name),
+        className: this.casing.entityName(view.name),
         testClassName: this.casing.testClassName(view.name),
         isShaped: true,
         isUnion: false,
