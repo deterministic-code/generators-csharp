@@ -13,7 +13,7 @@ const TYPES_YAML = `types:
             type: string
             size: 256
         - role_id:
-            type: number
+            type: integer
             references: role.id
   - role:
       tags: [datasource_type, view_type, readonly_lookup]
@@ -32,7 +32,7 @@ const TYPES_YAML = `types:
       inherits: set
       fields:
         - order_id:
-            type: number
+            type: integer
             references: order.id
         - sku:
             type: string

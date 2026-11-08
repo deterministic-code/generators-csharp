@@ -1,10 +1,7 @@
 import { fill } from "@deterministic-code/generators-common/fill";
 import type { GenerateContext } from "@deterministic-code/generators-common/generate-context";
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
-import {
-  datasourceTypesOf,
-  fieldTypeOf,
-} from "@deterministic-code/generators-common/spec-types";
+import { datasourceTypesOf } from "@deterministic-code/generators-common/spec-types";
 import {
   classParent,
   declaredFields,
@@ -191,12 +188,10 @@ class Generator extends Emit {
         ? null
         : `        Include(new ${this.casing.convertTypes(`datasource_${parent.name}_validator`)}());`;
     const fieldRules = declaredFields(table, "datasource", typesByName).map(
-      (field: TypeField) => {
-        const resolved = { ...field, type: fieldTypeOf(field, typesByName) };
-        return STANDARD_COLUMN_NAMES.has(field.name)
-          ? standardRuleLine(field.name, resolved.type, convertFields)
-          : ruleLine(resolved, convertFields);
-      },
+      (field: TypeField) =>
+        STANDARD_COLUMN_NAMES.has(field.name)
+          ? standardRuleLine(field.name, field.type, convertFields)
+          : ruleLine(field, convertFields),
     );
     const rules = [include, ...fieldRules].filter(
       (line): line is string => line !== null && line !== "",
