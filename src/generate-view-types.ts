@@ -4,7 +4,6 @@ import { content, type GenerateEntry } from "@deterministic-code/generators-comm
 import {
   dictionaryEntryFields,
   dictionaryOfField,
-  fieldTypeOf,
   viewTypesOf,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -81,7 +80,7 @@ class Generator extends Emit {
       const initializer =
         collectionDefaultExpr(f) ??
         (f.kind === "primitive"
-          ? nativeDefaultExpr(fieldTypeOf(f, typesByName), f)
+          ? nativeDefaultExpr(f.type, f)
           : undefined) ??
         csLanguageDefault(csType);
       return {

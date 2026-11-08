@@ -3,7 +3,6 @@ import type { GenerateContext } from "@deterministic-code/generators-common/gene
 import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
 import {
   datasourceTypesOf,
-  fieldTypeOf,
   persistedColumnFields,
 } from "@deterministic-code/generators-common/spec-types";
 import {
@@ -87,9 +86,8 @@ const samplesForNative = (
 const fieldTok = (
   field: TypeField,
   convertFields: (name: string) => string,
-  typesByName: ReadonlyMap<string, Type>,
 ): FieldTok => {
-  const specType = fieldTypeOf(field, typesByName);
+  const specType = field.type;
   const { sample } = samplesForNative(
     convertSpecType(specType),
     specType,
@@ -177,7 +175,7 @@ class Generator extends Emit {
 
   private tests(table: Type, typesByName: Map<string, Type>): GenerateEntry {
     const fields = persistedColumnFields(table, typesByName).map((f) =>
-      fieldTok(f, (name) => this.casing.convertFields(name), typesByName),
+      fieldTok(f, (name) => this.casing.convertFields(name)),
     );
     const className = this.casing.entityName(table.name);
     return content(
