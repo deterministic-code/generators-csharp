@@ -125,7 +125,7 @@ describe("generate view type validators tests", () => {
     );
     assert.match(card, /public void ParsesAValidPayload\(/);
     assert.match(card, /public void AcceptsNullForNullableFields\(/);
-    assert.match(card, /public void RejectsNullForAmount\(/);
+    assert.doesNotMatch(card, /public void RejectsNullForAmount\(/);
     assert.match(card, /new CardPaymentValidator\(\)\.Validate\(value\)/);
     assert.match(card, /Note = null/);
   });

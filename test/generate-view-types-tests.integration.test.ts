@@ -190,7 +190,7 @@ describe("generate view types tests", () => {
     assert.match(card, /using Backend\.Types\.View;/);
     assert.match(card, /using System\.Collections\.Generic;/);
     assert.match(card, /private static CardPayment Sample\(\) => new CardPayment/);
-    assert.match(card, /Amount = "0"/);
+    assert.match(card, /Amount = 0m/);
     assert.match(
       card,
       /PaidAt = System\.DateTime\.Parse\("2024-01-01T00:00:00.000Z"\)/,
@@ -199,7 +199,7 @@ describe("generate view types tests", () => {
     assert.match(card, /SmallRank = \(short\)1/);
     assert.match(card, /Score = 1\.0/);
     assert.match(card, /Active = false/);
-    assert.match(card, /Token = "00000000-0000-0000-0000-000000000000"/);
+    assert.match(card, /Token = System\.Guid\.Parse\("00000000-0000-0000-0000-000000000000"\)/);
     assert.match(card, /Avatar = new byte\[\] \{ \}/);
     assert.match(card, /Tags = new List<Tag> \{ new Tag\(\) \}/);
     assert.match(card, /Owner = new UserSummary\(\)/);

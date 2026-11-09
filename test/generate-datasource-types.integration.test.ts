@@ -102,7 +102,7 @@ describe("generate", () => {
     assert.match(user, /namespace Backend\.Types\.Datasource;/);
     assert.match(user, /public class User\n/);
     assert.match(user, /public long Id \{ get; set; \}/);
-    assert.match(user, /public string Uuid \{ get; set; \} = "";/);
+    assert.match(user, /public System\.Guid Uuid \{ get; set; \}/);
     assert.match(user, /public System.DateTime Created \{ get; set; \}/);
     assert.match(user, /public System.DateTime Updated \{ get; set; \}/);
     assert.match(user, /public string Email \{ get; set; \} = "";/);
@@ -191,7 +191,7 @@ describe("generate", () => {
     const base = body("Base.cs");
     assert.match(base, /public class Base\n/);
     assert.match(base, /public long Id \{ get; set; \}/);
-    assert.match(base, /public string Uuid \{ get; set; \} = "";/);
+    assert.match(base, /public System\.Guid Uuid \{ get; set; \}/);
     assert.doesNotMatch(base, /\{ get; set; \};/);
     const address = body("AddressBase.cs");
     assert.match(address, /public class AddressBase : Base\n/);
@@ -339,9 +339,9 @@ describe("generate", () => {
     assert.match(flags, /public bool\? OptedOut \{ get; set; \} = false;/);
     assert.match(
       flags,
-      /public string Token \{ get; set; \} = Guid\.NewGuid\(\)\.ToString\(\);/,
+      /public System\.Guid Token \{ get; set; \} = Guid\.NewGuid\(\);/,
     );
-    assert.match(flags, /public string Price \{ get; set; \} = "1.50";/);
+    assert.match(flags, /public decimal Price \{ get; set; \} = 1\.50m;/);
     assert.match(
       flags,
       /public System.DateTime LocalNow \{ get; set; \} = DateTime\.Now;/,
@@ -352,11 +352,11 @@ describe("generate", () => {
     );
     assert.match(
       flags,
-      /public string EmptyId \{ get; set; \} = Guid\.Empty\.ToString\(\);/,
+      /public System\.Guid EmptyId \{ get; set; \} = Guid\.Empty;/,
     );
     assert.match(
       flags,
-      /public string FixedId \{ get; set; \} = "11111111-1111-4111-8111-111111111111";/,
+      /public System\.Guid FixedId \{ get; set; \} = Guid\.Parse\("11111111-1111-4111-8111-111111111111"\);/,
     );
     assert.match(
       flags,
