@@ -47,6 +47,13 @@ const samplesForNative = (
         sample: 'System.DateTime.Parse("2024-01-01T00:00:00.000Z")',
         next: 'System.DateTime.Parse("2024-01-02T00:00:00.000Z")',
       };
+    case "System.Guid":
+      return {
+        sample: 'System.Guid.Parse("00000000-0000-0000-0000-000000000000")',
+        next: 'System.Guid.Parse("00000000-0000-0000-0000-000000000001")',
+      };
+    case "decimal":
+      return { sample: "0m", next: "1m" };
     default:
       if (fieldType === "decimal") return { sample: '"0"', next: '"1"' };
       if (fieldType === "uuid") {

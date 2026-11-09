@@ -29,9 +29,6 @@ type FieldShape = {
 
 const STANDARD_COLUMN_NAMES = new Set(["id", "uuid", "created", "updated"]);
 
-const UUID_PATTERN =
-  "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
-
 const numericLiteralForNative = (
   native: string,
   value: number,
@@ -109,8 +106,6 @@ const tightenedRulesFor = (field: FieldShape): string[] => {
     case "string":
     case "character":
       return tightenString(field);
-    case "uuid":
-      return [`Matches("${UUID_PATTERN}")`];
     case "number":
     case "integer":
     case "smallinteger":

@@ -18,6 +18,8 @@ const token = (
 
 const quoted = token(spec.string.String!, csString, /^"(.*)"$/);
 
+const csDecimal = (arg: string): string => `${arg}m`;
+
 const numeric = (type: string): Record<string, DefaultEntry> => {
   const numericSpec = spec[type]!.Numeric!;
   return {
@@ -37,11 +39,11 @@ export const typeConverter = new DeterministicTypeConverter({
   biginteger: "long",
   unsignedbiginteger: "ulong",
   float: "double",
-  decimal: "string",
+  decimal: "decimal",
   boolean: "bool",
   datetime: "System.DateTime",
   binary: "byte[]",
-  uuid: "string",
+  uuid: "System.Guid",
   reference: "long",
 });
 
@@ -57,7 +59,11 @@ export const defaultValueConverter = new DeterministicDefaultValueConverter({
   unsignedbiginteger: numeric("unsignedbiginteger"),
   float: numeric("float"),
   decimal: {
-    Numeric: token(spec.decimal.Numeric!, csString, /^"(.*)"$/),
+    Numeric: token(
+      spec.decimal.Numeric!,
+      csDecimal,
+      /^(-?[0-9]+(?:\.[0-9]+)?)m$/,
+    ),
     String: quoted,
   },
   boolean: {
@@ -90,15 +96,15 @@ export const defaultValueConverter = new DeterministicDefaultValueConverter({
   uuid: {
     NewId: token(
       spec.uuid.NewId!,
-      () => "Guid.NewGuid().ToString()",
-      /^Guid\.NewGuid\(\)\.ToString\(\)$/,
+      () => "Guid.NewGuid()",
+      /^Guid\.NewGuid\(\)$/,
     ),
-    Empty: token(
-      spec.uuid.Empty!,
-      () => "Guid.Empty.ToString()",
-      /^Guid\.Empty\.ToString\(\)$/,
+    Empty: token(spec.uuid.Empty!, () => "Guid.Empty", /^Guid\.Empty$/),
+    Uuid: token(
+      spec.uuid.Uuid!,
+      (arg) => `Guid.Parse(${csString(arg)})`,
+      /^Guid\.Parse\("(.*)"\)$/,
     ),
-    Uuid: token(spec.uuid.Uuid!, csString, /^"(.*)"$/),
   },
   reference: {},
 });
@@ -120,6 +126,7 @@ const CS_NUMERIC = new Set([
 const isCsZero = (specType: string, expr: string): boolean => {
   const native = toNative(specType);
   if (native === "bool") return expr === "false";
+  if (native === "decimal") return /^0(?:\.0+)?m$/.test(expr);
   if (CS_NUMERIC.has(native)) return /^0(\.0+)?$/.test(expr);
   return false;
 };

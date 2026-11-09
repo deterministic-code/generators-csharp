@@ -42,6 +42,8 @@ const samplesForNative = (
         sample: 'System.Guid.Parse("00000000-0000-0000-0000-000000000000")',
         next: 'System.Guid.Parse("00000000-0000-0000-0000-000000000001")',
       };
+    case "decimal":
+      return { sample: "0m", next: "1m" };
     case "byte[]":
       return { sample: "new byte[] { }", next: "new byte[] { 1 }" };
     case "System.DateTime":

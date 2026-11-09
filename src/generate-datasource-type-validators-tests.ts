@@ -56,6 +56,8 @@ const samplesForNative = (
         sample: 'System.Guid.Parse("00000000-0000-0000-0000-000000000000")',
         next: 'System.Guid.Parse("00000000-0000-0000-0000-000000000001")',
       };
+    case "decimal":
+      return { sample: "0m", next: "1m" };
     case "byte[]":
       return { sample: "new byte[] { }", next: "new byte[] { 1 }" };
     case "System.DateTime":
@@ -141,19 +143,6 @@ const casesFor = (
           fields.map((f) => ({
             ident: f.ident,
             expr: f.ident === field.ident ? "null" : f.sampleExpr,
-          })),
-        ),
-        assertion: "False",
-      });
-    }
-    if (field.type === "uuid") {
-      cases.push({
-        ident: convertTypes(`rejects_when_invalid_uuid_on_${field.name}`),
-        fixture: objectLiteral(
-          cls,
-          fields.map((f) => ({
-            ident: f.ident,
-            expr: f.ident === field.ident ? '"not-a-uuid"' : f.sampleExpr,
           })),
         ),
         assertion: "False",

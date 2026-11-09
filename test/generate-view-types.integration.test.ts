@@ -113,7 +113,7 @@ describe("generate view types", () => {
     const card = await bodyOf("CardPayment.cs");
     assert.match(card, /namespace Backend\.Types\.View;/);
     assert.match(card, /public class CardPayment/);
-    assert.match(card, /public string Amount \{ get; set; \} = "";/);
+    assert.match(card, /public decimal Amount \{ get; set; \}/);
     assert.match(
       card,
       /public List<Backend\.Types\.Datasource\.Tag> Tags \{ get; set; \} = \[\]/,
@@ -123,13 +123,13 @@ describe("generate view types", () => {
     assert.match(card, /using System\.Collections\.Generic;/);
     const payment = await bodyOf("Payment.cs");
     assert.match(payment, /public class Payment\n/);
-    assert.match(payment, /public string Amount \{ get; set; \} = "";/);
+    assert.match(payment, /public decimal Amount \{ get; set; \}/);
     assert.match(
       payment,
       /public List<Backend\.Types\.Datasource\.Tag> Tags \{ get; set; \} = \[\]/,
     );
     assert.match(payment, /public string\? Note \{ get; set; \}/);
-    assert.match(payment, /public string Tendered \{ get; set; \} = "";/);
+    assert.match(payment, /public decimal Tendered \{ get; set; \}/);
     assert.doesNotMatch(payment, /\{ get; set; \};/);
     const summary = await bodyOf("UserSummary.cs");
     assert.match(summary, /public class UserSummary/);
@@ -211,8 +211,8 @@ describe("generate view types", () => {
     assert.doesNotMatch(label, /public long Id/);
     const paid = body("Paid.cs");
     assert.match(paid, /public class Paid\n/);
-    assert.match(paid, /public string Amount \{ get; set; \} = "";/);
-    assert.match(paid, /public string Tendered \{ get; set; \} = "";/);
+    assert.match(paid, /public decimal Amount \{ get; set; \}/);
+    assert.match(paid, /public decimal Tendered \{ get; set; \}/);
     assert.doesNotMatch(paid, /\{ get; set; \};/);
     assert.doesNotMatch(paid, /Note/);
   });
@@ -386,12 +386,15 @@ describe("generate view types", () => {
     assert.match(flags, /new byte\[\] \{ 0 \}/);
     assert.match(flags, /DateTime\.UtcNow/);
     assert.match(flags, /public bool\? OptedOut \{ get; set; \} = false;/);
-    assert.match(flags, /Guid\.NewGuid\(\)\.ToString\(\)/);
-    assert.match(flags, /public string Price \{ get; set; \} = "1.50";/);
+    assert.match(flags, /public System\.Guid Token \{ get; set; \} = Guid\.NewGuid\(\);/);
+    assert.match(flags, /public decimal Price \{ get; set; \} = 1\.50m;/);
     assert.match(flags, /DateTime\.Now/);
     assert.match(flags, /DateTime\.Parse\("2026-01-01T00:00:00Z"\)/);
-    assert.match(flags, /Guid\.Empty\.ToString\(\)/);
-    assert.match(flags, /"11111111-1111-4111-8111-111111111111"/);
+    assert.match(flags, /public System\.Guid EmptyId \{ get; set; \} = Guid\.Empty;/);
+    assert.match(
+      flags,
+      /public System\.Guid FixedId \{ get; set; \} = Guid\.Parse\("11111111-1111-4111-8111-111111111111"\);/,
+    );
     assert.match(flags, /new byte\[\] \{  \}/);
     assert.match(flags, /public string Initial \{ get; set; \} = "X";/);
     assert.match(flags, /public double Ratio \{ get; set; \} = 1.5;/);

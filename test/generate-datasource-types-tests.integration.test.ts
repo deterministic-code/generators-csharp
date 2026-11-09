@@ -145,7 +145,7 @@ describe("generate datasource types tests", () => {
     );
     assert.match(user, /Email = "sample"/);
     assert.match(user, /Active = false,/);
-    assert.match(user, /Balance = "0"/);
+    assert.match(user, /Balance = 0m/);
   });
 
   it("writes codegen.schema_version into the file header", async () => {
